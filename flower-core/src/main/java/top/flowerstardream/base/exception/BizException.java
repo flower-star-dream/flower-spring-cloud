@@ -1,6 +1,7 @@
 package top.flowerstardream.base.exception;
 
 import cn.hutool.core.util.StrUtil;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**

@@ -12,7 +12,7 @@
     <artifactId>flower-spring-cloud</artifactId>
     <version>${revision}</version>
     <packaging>pom</packaging>
-    <name>flower-spring-cloud-starter</name>
+    <name>flower-spring-cloud</name>
     <description>微服务基础框架起步依赖</description>
     <modules>
         <module>flower-core</module>
@@ -25,6 +25,7 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>release-1.0.0</revision>
+        <flatten.version>1.7.3</flatten.version>
         <spring-cloud.version>2023.0.6</spring-cloud.version>
         <alibaba-cloud.version>2023.0.3.3</alibaba-cloud.version>
         <mysql.version>9.3.0</mysql.version>
@@ -41,6 +42,7 @@
         <commons-lang3.version>3.20.0</commons-lang3.version>
         <minio.version>8.5.10</minio.version>
         <wechatpay.version>0.6.0</wechatpay.version>
+        <statemachine.version>4.0.0</statemachine.version>
         <!-- 漏洞补丁 -->
         <protobuf-java.version>4.28.2</protobuf-java.version>
         <commons-beanutils.version>1.11.0</commons-beanutils.version>
@@ -74,6 +76,12 @@
               <groupId>org.apache.seata</groupId>
               <artifactId>seata-spring-boot-starter</artifactId>
               <version>${seata.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.statemachine</groupId>
+                <artifactId>spring-statemachine-starter</artifactId>
+                <version>${statemachine.version}</version>
             </dependency>
 
             <dependency>
@@ -263,6 +271,7 @@
                     <groupId>org.codehaus.mojo</groupId>
                     <!-- 插件的 ArtifactId，标识插件的名称 -->
                     <artifactId>flatten-maven-plugin</artifactId>
+                    <version>${flatten.version}</version>
                     <configuration>
                         <!-- 配置扁平化后的 POM 文件的名称 -->
                         <flattenedPomFilename>pom-xml-flattened</flattenedPomFilename>
