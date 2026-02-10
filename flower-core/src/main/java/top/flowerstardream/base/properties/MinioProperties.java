@@ -7,12 +7,21 @@ import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
+/**
+ * @Author: 花海
+ * @Date: 2025/11/04/17:01
+ * @Description: Minio 配置
+ */
 @Data
 @Component
 @ConfigurationProperties(prefix = "minio")  // 文件上传 配置前缀file.oss
 public class MinioProperties implements Serializable {
-    private String accessKey; // 账号
-    private String secretKey; // 密钥
-    private String bucket; // 存储桶名称
-    private String endpoint; // 域名
+    // 账号
+    private String accessKey;
+    // 密码
+    private String secretKey;
+    // 存储桶
+    private String bucket;
+    // 切入点
+    private String endpoint;
 }

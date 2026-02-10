@@ -14,7 +14,7 @@ import java.util.List;
  */
 @Data
 @Component
-@ConfigurationProperties(prefix = "hcd.gateway")
+@ConfigurationProperties(prefix = "gateway")
 public class MyGatewayProperties {
     private List<String> whiteList = List.of(
             "/login",
@@ -34,12 +34,4 @@ public class MyGatewayProperties {
             "/knife4j",
             "/knife4j/**"
     );
-
-    private List<AuthMatrix> authMatrix = new ArrayList<>();
-
-    @Data
-    public static class AuthMatrix {
-        private String pattern;
-        private String roles;   // 多个逗号分隔，"*" 表示任意角色
-    }
 }

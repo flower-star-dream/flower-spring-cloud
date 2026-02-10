@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>flower-spring-cloud-dependencies</artifactId>
+    <version>${revision}</version>
     <packaging>pom</packaging>
 
     <properties>

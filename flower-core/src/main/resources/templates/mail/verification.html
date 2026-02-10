@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证码</title>
+    <style>
+        .container {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .code-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .code {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2d3748;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px;
+            text-align: center;
+            color: #718096;
+            font-size: 12px;
+        }
+        .warning {
+            color: #e53e3e;
+            font-size: 13px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>安全验证</h1>
+        </div>
+        <div class="content">
+            <p>您好，</p>
+            <p>您正在进行安全验证操作，请使用以下验证码完成验证：</p>
+            
+            <div class="code-box">
+                <div class="code" th:text="${code}">123456</div>
+            </div>
+            
+            <p>该验证码将于 <strong th:text="${expireMinutes}">5</strong> 分钟后过期，请及时使用。</p>
+            
+            <p class="warning">
+                ⚠️ 注意：请勿将验证码泄露给他人。如非本人操作，请忽略此邮件。
+            </p>
+        </div>
+        <div class="footer">
+            <p>此邮件由系统自动发送，请勿直接回复</p>
+            <p>&copy; 2026 花海</p>
+        </div>
+    </div>
+</body>
+</html>

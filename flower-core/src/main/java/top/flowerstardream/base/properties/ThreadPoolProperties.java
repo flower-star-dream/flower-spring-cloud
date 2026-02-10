@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
  * @Description: 线程池属性
  */
 @Component
-@ConfigurationProperties(prefix = "hcd.thread-pool")
+@ConfigurationProperties(prefix = "thread-pool")
 @Data
 public class ThreadPoolProperties {
     /**

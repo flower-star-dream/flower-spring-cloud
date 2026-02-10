@@ -26,7 +26,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>release-1.0.0</revision>
         <flatten.version>1.7.3</flatten.version>
-        <spring-cloud.version>2023.0.6</spring-cloud.version>
+        <spring-cloud.version>2024.0.3</spring-cloud.version>
         <alibaba-cloud.version>2023.0.3.3</alibaba-cloud.version>
         <mysql.version>9.3.0</mysql.version>
         <seata.version>2.5.0</seata.version>
@@ -220,6 +220,11 @@
                 <artifactId>spring-cloud-gateway-server</artifactId>
                 <version>${gateway-server.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-gateway-server-webflux</artifactId>
+                <version>${gateway-server.version}</version>
+            </dependency>
 
             <dependency>
                 <groupId>commons-fileupload</groupId>
@@ -235,6 +240,27 @@
                 <groupId>com.google.guava</groupId>
                 <artifactId>guava</artifactId>
                 <version>${guava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>top.flowerstardream.base</groupId>
+                <artifactId>flower-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>top.flowerstardream.base</groupId>
+                <artifactId>flower-spring-cloud-autoconfigure</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>top.flowerstardream.base</groupId>
+                <artifactId>flower-spring-cloud-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>top.flowerstardream.base</groupId>
+                <artifactId>flower-spring-cloud-dependencies</artifactId>
+                <version>${revision}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

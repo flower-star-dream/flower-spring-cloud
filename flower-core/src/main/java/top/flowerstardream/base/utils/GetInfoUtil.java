@@ -28,4 +28,13 @@ public final class GetInfoUtil {
         RequestContext ctx = TtlContextHolder.get();
         return ctx.getToken();
     }
+
+    // 类型安全地获取扩展数据
+    public static <T> T getExtra(String key, Class<T> type) {
+        RequestContext ctx = TtlContextHolder.get();
+        if (ctx == null) {
+            return null;
+        }
+        return ctx.getExtra(key, type);
+    }
 }

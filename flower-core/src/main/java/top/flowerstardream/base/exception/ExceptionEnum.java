@@ -20,7 +20,9 @@ public enum ExceptionEnum implements IExceptionEnum{
     EMPTY_STATE(10006, "空状态"),
     ILLEGAL_STATE_TRANSITION(10007, "不允许的状态转换"),
     EMPTY_PARAMETER(10008, "空参数"),
-    MODIFICATION_FAILED(10009, "修改失败");
+    MODIFICATION_FAILED(10009, "修改失败"),
+    VERIFICATION_EXCEPTION(10010, "验证码异常"),
+    TOO_MANY_REQUESTS(10011, "今日发送次数已达上限，请明天再试");
 
 
     private final Integer code;

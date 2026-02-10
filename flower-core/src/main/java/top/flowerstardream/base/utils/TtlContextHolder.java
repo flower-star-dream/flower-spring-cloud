@@ -15,5 +15,13 @@ public final class TtlContextHolder {
 
     public static void set(RequestContext ctx) { TTL.set(ctx); }
     public static RequestContext get()        { return TTL.get(); }
+    // 判断是否在当前上下文
+    public static boolean hasContext() {
+        return TTL.get() != null;
+    }
+    public static RequestContext getSafe() {
+        RequestContext ctx = TTL.get();
+        return ctx != null ? ctx : new RequestContext();
+    }
     public static void clear()                { TTL.remove(); }
 }
