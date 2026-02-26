@@ -24,12 +24,20 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     private final String updateTimeFieldName = "updateTime";
     private final String createPersonFieldName = "createPersonId";
     private final String updatePersonFieldName = "updatePersonId";
+    private final String versionFieldName = "version";
 
     @Override
     public void insertFill(MetaObject metaObject) {
         log.info("【id生成器：插入字段自动填充】traceId:{}, 插入填充：{}", getTraceId(), metaObject);
-        this.strictInsertFill(metaObject, createTimeFieldName, LocalDateTime.class, LocalDateTime.now());
-        this.strictInsertFill(metaObject, updateTimeFieldName, LocalDateTime.class, LocalDateTime.now());
+        if (metaObject.getValue(createPersonFieldName) == null) {
+            this.strictInsertFill(metaObject, createTimeFieldName, LocalDateTime.class, LocalDateTime.now());
+        }
+        if (metaObject.getValue(updateTimeFieldName) == null) {
+            this.strictInsertFill(metaObject, updateTimeFieldName, LocalDateTime.class, LocalDateTime.now());
+        }
+        if (metaObject.getValue(versionFieldName) == null) {
+            this.strictInsertFill(metaObject, versionFieldName, Integer.class, 1);
+        }
         Long createPersonId = getOperatorId();
         if (createPersonId == null) {
             createPersonId = 1L;
@@ -49,7 +57,9 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         if (updatePersonId == null) {
             updatePersonId = 1L;
         }
-        this.strictUpdateFill(metaObject, updateTimeFieldName, LocalDateTime.class, LocalDateTime.now());
+        if (metaObject.getValue(updateTimeFieldName) == null) {
+            this.strictUpdateFill(metaObject, updateTimeFieldName, LocalDateTime.class, LocalDateTime.now());
+        }
         if (metaObject.getValue(updatePersonFieldName) == null) {
             this.strictUpdateFill(metaObject, updatePersonFieldName, Long.class, updatePersonId);
         }
