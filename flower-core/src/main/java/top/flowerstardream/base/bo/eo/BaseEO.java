@@ -23,7 +23,7 @@ public class BaseEO implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 //    @TableId(value = "id", type = IdType.INPUT)
-    @TableId(value = "id", type = IdType.ASSIGN_ID) //默认自增
+    @TableId(value = "id", type = IdType.ASSIGN_ID)
     @TableField(value = "id", fill = FieldFill.INSERT)
     protected Long id;
 }

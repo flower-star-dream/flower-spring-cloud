@@ -1,5 +1,6 @@
 package top.flowerstardream.base.state;
 
+import com.baomidou.mybatisplus.annotation.IEnum;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -15,7 +16,7 @@ import java.util.stream.Collectors;
  */
 @Getter
 @AllArgsConstructor
-public enum BaseStatus implements IBaseState<Integer> {
+public enum BaseStatus implements IBaseState<Integer>, IEnum<Integer> {
     DISABLE(0, "禁用"),
     ENABLE(1, "启用");
 
@@ -27,5 +28,14 @@ public enum BaseStatus implements IBaseState<Integer> {
 
     public static BaseStatus valueOf(Integer code) {
         return CODE_MAP.get(code);
+    }
+
+    /**
+     * 获取状态码
+     * @return 状态码
+     */
+    @Override
+    public Integer getValue() {
+        return this.code;
     }
 }

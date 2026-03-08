@@ -1,11 +1,13 @@
 package top.flowerstardream.base.ao.req;
 
+import com.baomidou.mybatisplus.annotation.IEnum;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import top.flowerstardream.base.state.IBaseState;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -20,7 +22,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "状态更改请求")
-public class BaseStatusChangeREQ implements Serializable {
+public class BaseStatusChangeREQ<E extends IEnum<?> & IBaseState<?>> implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
@@ -30,5 +32,5 @@ public class BaseStatusChangeREQ implements Serializable {
 
     @Schema(description = "状态")
     @NotNull(message = "状态不能为空")
-    private Integer status;
+    private E status;
 }

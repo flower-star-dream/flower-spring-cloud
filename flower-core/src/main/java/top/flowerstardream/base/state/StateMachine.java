@@ -4,7 +4,7 @@ import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import top.flowerstardream.base.bo.eo.BaseEO;
-import top.flowerstardream.base.exception.BizException;
+import top.flowerstardream.base.utils.StateRouteParams;
 
 import java.util.Map;
 import java.util.Set;
@@ -14,21 +14,17 @@ import static top.flowerstardream.base.exception.ExceptionEnum.*;
 /**
  * @param <S>
  * @param <E>
- * @param <P>
  *
  * @Author: 花海
  * @Date: 2025/12/16/14:41
  * @Description: 状态机
  */
-@Component
 @RequiredArgsConstructor
 public class StateMachine<S extends IBaseState<?>,
                                E extends IBaseEvent<?>,
-                               D extends BaseEO,
-                               P> {
+                               D extends BaseEO> {
 
-    @Resource
-    private IStateRouter<S, E, D, P> router;
+    private final IStateRouter<S, E, D> router;
 
     /**
      * 触发状态迁移
@@ -37,7 +33,7 @@ public class StateMachine<S extends IBaseState<?>,
      * @param param        业务实参数
      * @return 新的状态枚举
      */
-    public S fire(S currentState, E event, P param) {
+    public S fire(S currentState, E event, StateRouteParams param) {
         /* 1. 合法性校验 */
         Map<E, S> event2Target = router.getStateEventTargetConfig().get(currentState);
         if (event2Target == null || !event2Target.containsKey(event)) {

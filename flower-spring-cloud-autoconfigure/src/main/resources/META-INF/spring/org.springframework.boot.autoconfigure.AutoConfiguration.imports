@@ -1,0 +1,12 @@
+# MyBatis-Plus 配置
+top.flowerstardream.base.autoconfigure.MyBatisPlusConfig
+# 线程池配置
+top.flowerstardream.base.autoconfigure.ThreadPoolConfig
+# 异步配置类
+top.flowerstardream.base.autoconfigure.AsyncConfig
+# 基础配置类
+top.flowerstardream.base.autoconfigure.FlowerAutoConfiguration
+# 状态机自动配置类
+top.flowerstardream.base.autoconfigure.StateMachineAutoConfiguration
+# MinIO 配置类
+top.flowerstardream.base.autoconfigure.MinIOConfig

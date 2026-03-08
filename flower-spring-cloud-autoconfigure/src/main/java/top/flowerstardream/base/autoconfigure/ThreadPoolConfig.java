@@ -1,8 +1,9 @@
-package top.flowerstardream.base.config;
+package top.flowerstardream.base.autoconfigure;
 
 import com.alibaba.ttl.threadpool.TtlExecutors;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -19,7 +20,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @date 2025-10-14
  */
 @Slf4j
-@Configuration
+@AutoConfiguration
 public class ThreadPoolConfig {
 
     @Resource

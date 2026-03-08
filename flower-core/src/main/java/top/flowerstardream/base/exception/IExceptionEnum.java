@@ -16,7 +16,7 @@ public interface IExceptionEnum{
     // 创建一个自定义异常
     @Getter
     @AllArgsConstructor
-    class SimpleExceptionEnum implements IExceptionEnum {
+    class CustomExceptionEnum implements IExceptionEnum {
         private Integer code;
         private String message;
     }
@@ -28,7 +28,7 @@ public interface IExceptionEnum{
      * @return
      */
     static IExceptionEnum of(Integer code, String message) {
-        return new SimpleExceptionEnum(code, message);
+        return new CustomExceptionEnum(code, message);
     }
 
     /**

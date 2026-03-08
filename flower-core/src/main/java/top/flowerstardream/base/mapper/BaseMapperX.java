@@ -5,12 +5,13 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.expression.ExpressionParser;
 import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.expression.spel.support.StandardEvaluationContext;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.ReflectionUtils;
 import top.flowerstardream.base.annotation.Query;
+import top.flowerstardream.base.bo.eo.BaseEO;
 import top.flowerstardream.base.result.PageResult;
 
 import java.util.Collection;
@@ -21,7 +22,7 @@ import java.util.List;
  * @Date: 2025/12/09/23:09
  * @Description: 自动查询条件、分页
  */
-public interface BaseMapperX<T> extends BaseMapper<T> {
+public interface BaseMapperX<T extends BaseEO> extends BaseMapper<T> {
 
     /**
      * 统一入口：分页 + 自动查询条件

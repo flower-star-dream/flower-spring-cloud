@@ -3,6 +3,7 @@ package top.flowerstardream.base.properties;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import top.flowerstardream.base.annotation.AutoConfigProperties;
 
 /**
  * @Author: 花海
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Component;
  */
 @Data
 @Component
+@AutoConfigProperties(prefix = "verify")
 @ConfigurationProperties(prefix = "verify")
 public class VerifyProperties {
 

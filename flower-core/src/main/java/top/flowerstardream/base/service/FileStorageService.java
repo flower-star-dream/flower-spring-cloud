@@ -31,6 +31,6 @@ public interface FileStorageService {
      * @return
      *
      */
-    public byte[]  downLoadFile(String pathUrl);
+    public byte[] downLoadFile(String pathUrl);
 
 }

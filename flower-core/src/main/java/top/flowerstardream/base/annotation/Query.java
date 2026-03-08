@@ -16,7 +16,8 @@ public interface Query {
     // 需要手动指定查询方式（like、ge、le...）的标记
     @Retention(RetentionPolicy.RUNTIME)
     @interface Condition {
-        String value() default "eq"; // 例如 "like", "ge", "le", "in" ...
+        // 例如 "like", "ge", "le", "in" ...
+        String value() default "eq";
         String left() default "";
         String right() default "";
     }

@@ -3,6 +3,7 @@ package top.flowerstardream.base.properties;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import top.flowerstardream.base.annotation.AutoConfigProperties;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,7 @@ import java.util.Map;
  */
 @Data
 @Component
+@AutoConfigProperties(prefix = "jwt")
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {
 

@@ -2,6 +2,7 @@ package top.flowerstardream.base.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import top.flowerstardream.base.ao.req.BaseStatusChangeREQ;
+import top.flowerstardream.base.state.BaseStatus;
 
 /**
  * @Author: 花海
@@ -14,5 +15,5 @@ public interface IBaseService<T> extends IService<T> {
      * 启用或禁用
      * @param req 状态更改请求
      */
-    void startOrStop(BaseStatusChangeREQ req);
+    void startOrStop(BaseStatusChangeREQ<BaseStatus> req);
 }

@@ -1,15 +1,13 @@
 package top.flowerstardream.base.service.Impl;
 
 import jakarta.annotation.Resource;
-import jakarta.mail.MessagingException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import top.flowerstardream.base.exception.BizException;
 import top.flowerstardream.base.exception.IExceptionEnum;
 import top.flowerstardream.base.properties.OtherProperties;
 import top.flowerstardream.base.properties.VerifyProperties;
@@ -31,6 +29,7 @@ import static top.flowerstardream.base.exception.ExceptionEnum.*;
  */
 @Service
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "spring.mail", name = "host")
 @Slf4j
 public class VerificationCodeServiceImpl {
 

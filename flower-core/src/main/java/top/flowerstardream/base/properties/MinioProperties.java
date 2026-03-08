@@ -4,6 +4,7 @@ package top.flowerstardream.base.properties;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import top.flowerstardream.base.annotation.AutoConfigProperties;
 
 import java.io.Serializable;
 
@@ -14,7 +15,8 @@ import java.io.Serializable;
  */
 @Data
 @Component
-@ConfigurationProperties(prefix = "minio")  // 文件上传 配置前缀file.oss
+@AutoConfigProperties(prefix = "minio")  // 文件上传 配置前缀file.oss
+@ConfigurationProperties(prefix = "minio")
 public class MinioProperties implements Serializable {
     // 账号
     private String accessKey;

@@ -20,9 +20,17 @@ public enum ExceptionEnum implements IExceptionEnum{
     EMPTY_STATE(10006, "空状态"),
     ILLEGAL_STATE_TRANSITION(10007, "不允许的状态转换"),
     EMPTY_PARAMETER(10008, "空参数"),
-    MODIFICATION_FAILED(10009, "修改失败"),
-    VERIFICATION_EXCEPTION(10010, "验证码异常"),
-    TOO_MANY_REQUESTS(10011, "今日发送次数已达上限，请明天再试");
+    INSERTION_FAILED(10009, "插入失败"),
+    MODIFICATION_FAILED(10010, "修改失败"),
+    DELETION_FAILED(10011, "删除失败"),
+    VERIFICATION_EXCEPTION(10012, "验证码异常"),
+    TOO_MANY_REQUESTS(10013, "今日发送次数已达上限，请明天再试"),
+    PAYMENT_ERROR(10014, "支付异常"),
+    GET_REQUEST_FAILED(10015, "GET请求失败"),
+    POST_REQUEST_FAILED(10016, "POST请求失败"),
+    FAILED_FILE_UPLOAD(10017, "文件上传失败"),
+    FAILED_FILE_DOWNLOAD(10018, "文件下载失败"),
+    FAILED_FILE_DELETE(10019, "文件删除失败");
 
 
     private final Integer code;

@@ -3,6 +3,7 @@ package top.flowerstardream.base.properties;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import top.flowerstardream.base.annotation.AutoConfigProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.List;
  */
 @Data
 @Component
+@AutoConfigProperties(prefix = "gateway")
 @ConfigurationProperties(prefix = "gateway")
 public class MyGatewayProperties {
     private List<String> whiteList = List.of(
