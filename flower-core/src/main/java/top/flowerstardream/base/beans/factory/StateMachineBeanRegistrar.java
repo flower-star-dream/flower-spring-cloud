@@ -31,62 +31,91 @@ public class StateMachineBeanRegistrar implements BeanDefinitionRegistryPostProc
     // 保存 registry 供后续使用
     private BeanDefinitionRegistry registry;
 
+    /**
+     * 在 Bean 定义注册阶段保存 registry 引用，以便在后续工厂处理阶段使用
+     */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
         this.registry = registry;
     }
 
+    /**
+     * 处理 Bean 工厂，扫描所有实现了 IStateRouter 接口的 Bean
+     * 根据泛型参数动态注册对应的状态机 Bean (StateMachineFactoryBean)
+     */
     @Override
     @SuppressWarnings("unchecked")
     public void postProcessBeanFactory(ConfigurableListableBeanFactory factory) throws BeansException {
+        // 如果 registry 尚未初始化且 factory 可转换，则进行赋值
         if (this.registry == null && factory instanceof BeanDefinitionRegistry) {
             this.registry = (BeanDefinitionRegistry) factory;
         }
 
+        // 确保 registry 可用，否则抛出异常
         if (this.registry == null) {
             throw new IllegalStateException("BeanDefinitionRegistry not available");
         }
 
+        // 获取所有类型为 IStateRouter 的 Bean 名称
         String[] routerNames = factory.getBeanNamesForType(IStateRouter.class);
-        log.debug(">>> 发现路由: {}", Arrays.toString(routerNames));
+        log.debug(">>> 发现路由：{}", Arrays.toString(routerNames));
+        
         for (String routerName : routerNames) {
             Class<?> routerClass = factory.getType(routerName);
+            // 跳过未找到类或未标注 @StateRouter 注解的路由
             if (routerClass == null || AnnotationUtils.findAnnotation(routerClass, StateRouter.class) == null) {
                 continue;
             }
 
+            // 解析 IStateRouter 接口的泛型参数：State, Event, Data
             Class<?>[] generics = GenericTypeResolver.resolveTypeArguments(
                 routerClass, IStateRouter.class
             );
+            // 确保泛型参数数量为 3，否则跳过
             if (generics == null || generics.length != 3) {
                 continue;
             }
 
+            // 提取具体的泛型类型
             Class<? extends IBaseState<?>> stateClass = (Class<? extends IBaseState<?>>) generics[0];
             Class<? extends IBaseEvent<?>> eventClass = (Class<? extends IBaseEvent<?>>) generics[1];
             Class<? extends BaseEO> dataClass = (Class<? extends BaseEO>) generics[2];
 
+            // 生成状态机 Bean 的名称
             String machineName = generateMachineName(routerName);
-            log.debug(">>> 注册状态机: {}", machineName);
+            log.debug(">>> 注册状态机：{}", machineName);
 
+            // 构建状态机工厂 Bean 的定义
             BeanDefinitionBuilder builder = BeanDefinitionBuilder
                 .genericBeanDefinition(StateMachineFactoryBean.class)
-                .addConstructorArgValue(stateClass)
-                .addConstructorArgValue(eventClass)
-                .addConstructorArgValue(dataClass)
-                .addPropertyReference("router", routerName);
+                    // 注入状态类
+                .addConstructorArgValue(stateClass)      
+                    // 注入事件类
+                .addConstructorArgValue(eventClass)      
+                    // 注入数据实体类
+                .addConstructorArgValue(dataClass)       
+                    // 注入路由 Bean 引用
+                .addPropertyReference("router", routerName); 
 
+            // 注册 Bean 定义到容器
             registry.registerBeanDefinition(machineName, builder.getBeanDefinition());
-            log.debug(">>> 状态机注册成功: {}", machineName);
+            log.debug(">>> 状态机注册成功：{}", machineName);
         }
     }
 
+    /**
+     * 设置执行优先级为最高，确保在其他处理器之前执行
+     */
     @Override
     public int getOrder() {
         // 确保尽早执行
         return HIGHEST_PRECEDENCE;
     }
 
+    /**
+     * 根据路由 Bean 名称生成对应的状态机 Bean 名称
+     * 规则：若名称以 "Router" 结尾，则替换为 "Machine"；否则直接追加 "Machine"
+     */
     private String generateMachineName(String routerName) {
         if (routerName.endsWith("Router")) {
             return routerName.substring(0, routerName.length() - 6) + "Machine";
