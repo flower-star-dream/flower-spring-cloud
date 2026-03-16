@@ -4,6 +4,7 @@ import io.minio.MinioClient;
 import jakarta.annotation.Resource;
 import lombok.Data;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,7 +21,8 @@ import top.flowerstardream.base.service.FileStorageService;
 @Configuration
 @EnableConfigurationProperties({MinioProperties.class})
 //当引入FileStorageService接口时
-@ConditionalOnClass(FileStorageService.class)
+@ConditionalOnClass({FileStorageService.class, MinioClient.class})
+@ConditionalOnProperty(prefix = "minio", name = {"endpoint", "access-key", "secret-key"})
 public class MinIOConfig {
 
     @Resource

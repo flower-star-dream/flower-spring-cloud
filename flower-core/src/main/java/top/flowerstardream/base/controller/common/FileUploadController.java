@@ -2,6 +2,7 @@ package top.flowerstardream.base.controller.common;
 
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -25,19 +26,20 @@ import java.io.InputStream;
 @RequestMapping("/api/base/v1/common/file")
 @EnableConfigurationProperties(OtherProperties.class)
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "minio", name = {"endpoint", "access-key", "secret-key"})
 public class FileUploadController {
 
-    private final OtherProperties otherProperties;
+    @Resource
+    private OtherProperties otherProperties;
 
-    private final FileStorageService fileStorageService;
-
-    private final String prefix = otherProperties.getPrefix();
+    @Resource
+    private FileStorageService fileStorageService;
 
     @PostMapping("/upload")
     public Result<String> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
         String filename = FileServiceUtil.getFileName(file);
         InputStream inputStream = file.getInputStream();
-        return Result.successResult(fileStorageService.uploadImgFile(prefix, filename, inputStream));
+        return Result.successResult(fileStorageService.uploadImgFile(otherProperties.getPrefix(), filename, inputStream));
     }
 
 }

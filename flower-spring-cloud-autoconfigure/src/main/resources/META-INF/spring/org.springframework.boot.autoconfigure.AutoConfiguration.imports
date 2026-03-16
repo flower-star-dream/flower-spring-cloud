@@ -10,3 +10,7 @@ top.flowerstardream.base.autoconfigure.FlowerAutoConfiguration
 top.flowerstardream.base.autoconfigure.StateMachineAutoConfiguration
 # MinIO 配置类
 top.flowerstardream.base.autoconfigure.MinIOConfig
+# 微信支付配置类
+top.flowerstardream.base.autoconfigure.WeChatPayUtil
+# 用户名解析器
+top.flowerstardream.base.autoconfigure.UserNameResolverConfiguration

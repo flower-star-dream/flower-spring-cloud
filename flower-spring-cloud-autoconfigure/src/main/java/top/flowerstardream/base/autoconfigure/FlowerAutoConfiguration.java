@@ -16,7 +16,7 @@ import org.springframework.context.annotation.ComponentScan;
     "top.flowerstardream.base.handler",
     "top.flowerstardream.base.context",
     "top.flowerstardream.base.beans.factory",
-    "top.flowerstardream.base.properties",
+    "top.flowerstardream.base.properties"
 })
 public class FlowerAutoConfiguration {
 }

@@ -7,6 +7,7 @@ import io.minio.RemoveObjectArgs;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Import;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,8 @@ import static top.flowerstardream.base.exception.ExceptionEnum.*;
 @Service
 @Slf4j
 @EnableConfigurationProperties(MinioProperties.class)
+@ConditionalOnClass({MinioClient.class, FileStorageService.class})
+@ConditionalOnProperty(prefix = "minio", name = {"endpoint", "access-key", "secret-key"})
 public class MinIOFileStorageService implements FileStorageService {
 
     @Resource

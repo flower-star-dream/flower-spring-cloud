@@ -1,5 +1,6 @@
 package top.flowerstardream.base.beans.factory;
 
+import lombok.Data;
 import lombok.Setter;
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
@@ -17,6 +18,7 @@ import top.flowerstardream.base.state.StateMachine;
  * @param <E> 事件枚举
  * @param <D> 数据对象
  */
+@Data
 public class StateMachineFactoryBean<S extends IBaseState<?>,
                                       E extends IBaseEvent<?>,
                                       D extends BaseEO>
@@ -25,7 +27,6 @@ public class StateMachineFactoryBean<S extends IBaseState<?>,
     private final Class<S> stateClass;
     private final Class<E> eventClass;
     private final Class<D> dataClass;
-
     private IStateRouter<S, E, D> router;
     private StateMachine<S, E, D> instance;
 

@@ -28,8 +28,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
     private final String createPersonFieldName = "createPersonId";
     // 更新人 ID 字段名
     private final String updatePersonFieldName = "updatePersonId";
-    // 版本号字段名
-    private final String versionFieldName = "version";
 
     /**
      * 插入时自动填充字段
@@ -45,10 +43,6 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         // 如果更新时间未设置，则填充当前时间
         if (metaObject.getValue(updateTimeFieldName) == null) {
             this.strictInsertFill(metaObject, updateTimeFieldName, LocalDateTime.class, LocalDateTime.now());
-        }
-        // 如果版本号未设置，则初始化为 1
-        if (metaObject.getValue(versionFieldName) == null) {
-            this.strictInsertFill(metaObject, versionFieldName, Integer.class, 1);
         }
         // 获取当前操作人 ID，若为空则默认为 1
         Long createPersonId = getOperatorId();

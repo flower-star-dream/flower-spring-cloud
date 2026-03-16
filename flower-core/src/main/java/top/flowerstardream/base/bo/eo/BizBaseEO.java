@@ -26,8 +26,8 @@ public class BizBaseEO<E extends IEnum<?> & IBaseState<?>> extends AuditBaseEO{
     @TableLogic(value = "0", delval = "1")
     @TableField("deleted")
     protected Boolean deleted;
-    @TableField(value = "version", fill = FieldFill.INSERT_UPDATE)
     @Version
+    @TableField(value = "version")
     protected Integer version;
     @TableField("status")
     protected E status;

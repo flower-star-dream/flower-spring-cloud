@@ -1,5 +1,6 @@
 package top.flowerstardream.base.beans.factory;
 
+import lombok.Data;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -21,6 +22,7 @@ import java.lang.reflect.Type;
  * @Description: 实现 BeanPostProcessor 接口，在 Bean 初始化前扫描并注入带有 @AutoStateMachine 注解的状态机字段
  */
 @Component
+@Data
 public class StateMachineAutoInjector implements BeanPostProcessor, ApplicationContextAware {
     
     /** Spring 应用上下文 */

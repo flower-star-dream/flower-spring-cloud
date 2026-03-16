@@ -43,16 +43,22 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+            <dependency>
+                <groupId>top.flowerstardream.base</groupId>
+                <artifactId>flower-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>top.flowerstardream.base</groupId>
+                <artifactId>flower-spring-cloud-autoconfigure</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>top.flowerstardream.base</groupId>
+                <artifactId>flower-spring-cloud-starter</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
-<!--        <dependencies>-->
-<!--            <dependency>-->
-<!--                <groupId>org.springframework.boot</groupId>-->
-<!--                <artifactId>spring-boot-dependencies</artifactId>-->
-<!--                <version>3.4.12</version>-->
-<!--                <type>pom</type>-->
-<!--                <scope>import</scope>-->
-<!--            </dependency>-->
-<!--        </dependencies>-->
     </dependencyManagement>
 
     <build>
