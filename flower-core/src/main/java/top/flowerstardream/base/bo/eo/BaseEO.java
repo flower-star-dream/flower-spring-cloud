@@ -25,5 +25,5 @@ public class BaseEO implements Serializable {
 //    @TableId(value = "id", type = IdType.INPUT)
     @TableId(value = "id", type = IdType.ASSIGN_ID)
     @TableField(value = "id", fill = FieldFill.INSERT)
-    protected Long id;
+    private Long id;
 }

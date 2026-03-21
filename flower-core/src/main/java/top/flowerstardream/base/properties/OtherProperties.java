@@ -11,7 +11,6 @@ import top.flowerstardream.base.annotation.AutoConfigProperties;
  * @Description: 其他配置
  */
 @Data
-@Component
 @AutoConfigProperties(prefix = "other")
 @ConfigurationProperties(prefix = "other")
 public class OtherProperties {

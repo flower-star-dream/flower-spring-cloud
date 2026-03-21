@@ -10,10 +10,9 @@ import top.flowerstardream.base.annotation.AutoConfigProperties;
  * @Date: 2025/11/04/17:01
  * @Description: 微信支付配置
  */
-@Component
+@Data
 @AutoConfigProperties(prefix = "wechat")
 @ConfigurationProperties(prefix = "wechat")
-@Data
 public class WeChatProperties {
 
     //小程序的appid

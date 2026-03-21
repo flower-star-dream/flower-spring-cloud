@@ -15,9 +15,8 @@ import static top.flowerstardream.base.utils.GetInfoUtil.*;
  * @Date: 2025/10/31/19:00
  * @Description: 字段自动填充处理
  */
-@Component
-@RequiredArgsConstructor
 @Slf4j
+@RequiredArgsConstructor
 public class MyMetaObjectHandler implements MetaObjectHandler {
 
     // 创建时间字段名

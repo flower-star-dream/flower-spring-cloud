@@ -1,7 +1,9 @@
 package top.flowerstardream.base.controller.common;
 
+import io.minio.MinioClient;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,6 +29,7 @@ import java.io.InputStream;
 @EnableConfigurationProperties(OtherProperties.class)
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "minio", name = {"endpoint", "access-key", "secret-key"})
+@ConditionalOnClass({MinioClient.class, FileStorageService.class})
 public class FileUploadController {
 
     @Resource

@@ -1,8 +1,11 @@
 package top.flowerstardream.base.beans.factory;
 
 import jakarta.annotation.Resource;
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.core.ResolvableType;
 import org.springframework.stereotype.Component;
 import top.flowerstardream.base.bo.eo.BaseEO;
 import top.flowerstardream.base.state.IBaseEvent;
@@ -18,11 +21,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @Date: 2026/03/08/23:05
  * @Description: 状态机工厂类
  */
-@Component
+@RequiredArgsConstructor
 public class StateMachineFactory {
-    
-    @Resource
-    private ApplicationContext ctx;
+
+    private final ApplicationContext ctx;
     
     private final Map<String, StateMachine<?, ?, ?>> cache = new ConcurrentHashMap<>();
     
@@ -36,7 +38,14 @@ public class StateMachineFactory {
             String machineName = Introspector.decapitalize(
                 d.getSimpleName().replace("EO", "Machine")
             );
-            return ctx.getBean(machineName, StateMachine.class);
+            // 使用getBeanProvider避免NoSuchBeanDefinitionException
+            ObjectProvider<StateMachine<?, ?, ?>> provider = ctx.getBeanProvider(
+                ResolvableType.forClassWithGenerics(StateMachine.class, s, e, d)
+            );
+            return provider.getIfAvailable(() -> {
+                // 回退：尝试按名称获取
+                return ctx.getBean(machineName, StateMachine.class);
+            });
         });
     }
 }

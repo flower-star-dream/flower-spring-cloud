@@ -27,8 +27,8 @@ import static top.flowerstardream.base.exception.ExceptionEnum.PAYMENT_ERROR;
 
 /**
  * 微信支付工具类 (适配 wechatpay-java SDK)
+ * @author 花海
  */
-@Component
 @Slf4j
 public class WeChatPayUtil {
 

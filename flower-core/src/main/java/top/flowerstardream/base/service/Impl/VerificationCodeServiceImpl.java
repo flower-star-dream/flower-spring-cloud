@@ -8,10 +8,12 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import top.flowerstardream.base.enums.ITCEnum;
 import top.flowerstardream.base.exception.IExceptionEnum;
 import top.flowerstardream.base.properties.OtherProperties;
 import top.flowerstardream.base.properties.VerifyProperties;
 import top.flowerstardream.base.service.MailService;
+import top.flowerstardream.base.service.VerificationCodeService;
 
 import java.security.SecureRandom;
 import java.time.LocalDate;
@@ -19,6 +21,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.concurrent.TimeUnit;
 
 import static top.flowerstardream.base.constant.BaseRedisKeyConstant.*;
+import static top.flowerstardream.base.enums.ITCEnum.*;
 import static top.flowerstardream.base.exception.ExceptionEnum.*;
 
 /**
@@ -31,13 +34,13 @@ import static top.flowerstardream.base.exception.ExceptionEnum.*;
 @RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "spring.mail", name = "host")
 @Slf4j
-public class VerificationCodeServiceImpl {
+public class VerificationCodeServiceImpl implements VerificationCodeService {
 
     @Resource
     private MailService mailService;
 
     @Resource
-    private StringRedisTemplate redisTemplate;
+    private StringRedisTemplate stringRedisTemplate;
 
     @Resource
     private VerifyProperties verifyProperties;
@@ -58,9 +61,10 @@ public class VerificationCodeServiceImpl {
      * @param target
      * @param type
      */
-    public void sendCode(String target, String type) {
+    @Override
+    public void sendCode(String target, ITCEnum type) {
         // 1. 参数校验
-        if (!StringUtils.hasText(target) || !StringUtils.hasText(type)) {
+        if (!StringUtils.hasText(target) || type == null) {
             throw EMPTY_PARAMETER.toException();
         }
 
@@ -102,7 +106,8 @@ public class VerificationCodeServiceImpl {
      * @return true-验证成功，false-验证失败（验证码错误）
      * @throws RuntimeException 验证码过期或已被锁定
      */
-    public boolean verifyCode(String target, String type, String inputCode) {
+    @Override
+    public boolean verifyCode(String target, ITCEnum type, String inputCode) {
         if (!StringUtils.hasText(target) || !StringUtils.hasText(inputCode)) {
             return false;
         }
@@ -111,7 +116,7 @@ public class VerificationCodeServiceImpl {
         String key = buildKey(KEY_CODE, type, target);
 
         // 1. 获取存储的验证码
-        String correctCode = redisTemplate.opsForValue().get(key);
+        String correctCode = stringRedisTemplate.opsForValue().get(key);
 
         if (!StringUtils.hasText(correctCode)) {
             log.warn("验证码已过期或不存在，目标：{}", maskTarget(target));
@@ -120,31 +125,31 @@ public class VerificationCodeServiceImpl {
 
         // 2. 检查错误次数（防暴力破解）
         String errorKey = buildKey(KEY_ERROR, type, target);
-        String errorCountStr = redisTemplate.opsForValue().get(errorKey);
+        String errorCountStr = stringRedisTemplate.opsForValue().get(errorKey);
         int errorCount = errorCountStr == null ? 0 : Integer.parseInt(errorCountStr);
 
         if (errorCount >= maxErrorCount) {
             log.warn("验证码错误次数过多，已锁定，目标：{}", maskTarget(target));
             // 清除验证码
-            redisTemplate.delete(key);
-            redisTemplate.delete(errorKey);
+            stringRedisTemplate.delete(key);
+            stringRedisTemplate.delete(errorKey);
             throw VERIFICATION_EXCEPTION.toException();
         }
 
         // 3. 验证
         if (correctCode.equalsIgnoreCase(inputCode)) {
             // 验证成功，删除相关记录
-            redisTemplate.delete(key);
-            redisTemplate.delete(errorKey);
+            stringRedisTemplate.delete(key);
+            stringRedisTemplate.delete(errorKey);
             // 可选：清除发送间隔，允许立即重发
-            redisTemplate.delete(buildKey(KEY_INTERVAL, type, target));
+            stringRedisTemplate.delete(buildKey(KEY_INTERVAL, type, target));
 
             log.info("验证码验证成功，目标：{}", maskTarget(target));
             return true;
         } else {
             // 验证失败，增加错误计数
-            long remainSeconds = redisTemplate.getExpire(key, TimeUnit.SECONDS);
-            redisTemplate.opsForValue().set(errorKey, String.valueOf(errorCount + 1),
+            long remainSeconds = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
+            stringRedisTemplate.opsForValue().set(errorKey, String.valueOf(errorCount + 1),
                     remainSeconds > 0 ? remainSeconds : codeExpireSeconds, TimeUnit.SECONDS);
             log.warn("验证码错误，目标：{}，当前错误次数：{}", maskTarget(target), errorCount + 1);
             return false;
@@ -154,20 +159,22 @@ public class VerificationCodeServiceImpl {
     /**
      * 重新发送验证码（便捷方法）
      */
-    public void resendCode(String target, String type) {
+    @Override
+    public void resendCode(String target, ITCEnum type) {
         // 清除旧的发送间隔限制，允许立即重发
         String intervalKey = buildKey(KEY_INTERVAL, type, target);
-        redisTemplate.delete(intervalKey);
+        stringRedisTemplate.delete(intervalKey);
         sendCode(target, type);
     }
 
     /**
      * 获取剩余有效时间（用于前端显示）
      */
-    public Long getRemainingTime(String target, String type) {
+    @Override
+    public Long getRemainingTime(String target, ITCEnum type) {
         String key = buildKey(KEY_CODE, type, target);
-        Long expire = redisTemplate.getExpire(key, TimeUnit.SECONDS);
-        return expire != null && expire > 0 ? expire : 0L;
+        Long expire = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
+        return expire > 0 ? expire : 0L;
     }
 
     // ==================== 私有辅助方法 ====================
@@ -175,14 +182,14 @@ public class VerificationCodeServiceImpl {
     /**
      * 异步发送验证码
      */
-    @Async("taskExecutor")  // 需要配置线程池
-    public void asyncSend(String type, String target, String code, String appName) {
+    @Async("messageExecutor")  // 需要配置线程池
+    public void asyncSend(ITCEnum type, String target, String code, String appName) {
         try {
             int expireMinutes = (int) (codeExpireSeconds / 60);
 
-            if ("email".equals(type)) {
+            if (EMAIL.equals(type)) {
                 mailService.sendVerificationCode(target, code, expireMinutes, appName);
-            } else if ("sms".equals(type)) {
+            } else if (SMS.equals(type)) {
                 // TODO: 接入短信服务
                 // smsService.sendSms(target, code);
                 log.info("短信发送模拟：目标 {}，验证码 {}", maskTarget(target), code);
@@ -200,13 +207,13 @@ public class VerificationCodeServiceImpl {
     /**
      * 检查发送间隔
      */
-    private void checkSendInterval(String target, String type) {
+    private void checkSendInterval(String target, ITCEnum type) {
         String key = buildKey(KEY_INTERVAL, type, target);
-        Boolean exists = redisTemplate.hasKey(key);
+        Boolean exists = stringRedisTemplate.hasKey(key);
 
         if (exists) {
-            Long ttl = redisTemplate.getExpire(key, TimeUnit.SECONDS);
-            String message = String.format("请%d秒后再试", ttl != null ? ttl : sendIntervalSeconds);
+            Long ttl = stringRedisTemplate.getExpire(key, TimeUnit.SECONDS);
+            String message = String.format("请%d秒后再试", ttl);
             throw IExceptionEnum.of(10010, message).toException();
         }
     }
@@ -214,11 +221,11 @@ public class VerificationCodeServiceImpl {
     /**
      * 检查每日发送限制
      */
-    private void checkDailyLimit(String target, String type) {
+    private void checkDailyLimit(String target, ITCEnum type) {
         String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
         String key = String.format(KEY_DAILY, type, target, today);
 
-        String countStr = redisTemplate.opsForValue().get(key);
+        String countStr = stringRedisTemplate.opsForValue().get(key);
         int count = countStr == null ? 0 : Integer.parseInt(countStr);
 
         if (count >= dailyMaxCount) {
@@ -229,38 +236,38 @@ public class VerificationCodeServiceImpl {
     /**
      * 保存验证码到 Redis
      */
-    private void saveCodeToRedis(String target, String type, String code) {
+    private void saveCodeToRedis(String target, ITCEnum type, String code) {
         String key = buildKey(KEY_CODE, type, target);
-        redisTemplate.opsForValue().set(key, code, codeExpireSeconds, TimeUnit.SECONDS);
+        stringRedisTemplate.opsForValue().set(key, code, codeExpireSeconds, TimeUnit.SECONDS);
     }
 
     /**
      * 更新限流计数器
      */
-    private void updateLimitCounter(String target, String type) {
+    private void updateLimitCounter(String target, ITCEnum type) {
         // 1. 发送间隔
         String intervalKey = buildKey(KEY_INTERVAL, type, target);
-        redisTemplate.opsForValue().set(intervalKey, "1", sendIntervalSeconds, TimeUnit.SECONDS);
+        stringRedisTemplate.opsForValue().set(intervalKey, "1", sendIntervalSeconds, TimeUnit.SECONDS);
 
         // 2. 每日计数（当天剩余时间）
         String today = LocalDate.now().format(DateTimeFormatter.ISO_DATE);
         String dailyKey = String.format(KEY_DAILY, type, target, today);
 
-        redisTemplate.opsForValue().increment(dailyKey);
+        stringRedisTemplate.opsForValue().increment(dailyKey);
         // 设置当天过期（到第二天凌晨）
         long secondsUntilMidnight = java.time.Duration.between(
                 java.time.LocalDateTime.now(),
                 java.time.LocalDate.now().plusDays(1).atStartOfDay()
         ).getSeconds();
-        redisTemplate.expire(dailyKey, secondsUntilMidnight, TimeUnit.SECONDS);
+        stringRedisTemplate.expire(dailyKey, secondsUntilMidnight, TimeUnit.SECONDS);
     }
 
     /**
      * 获取已存在的有效验证码（用于判断是否重复发送）
      */
-    private String getExistCode(String target, String type) {
+    private String getExistCode(String target, ITCEnum type) {
         String key = buildKey(KEY_CODE, type, target);
-        return redisTemplate.opsForValue().get(key);
+        return stringRedisTemplate.opsForValue().get(key);
     }
 
     /**
@@ -288,8 +295,8 @@ public class VerificationCodeServiceImpl {
     /**
      * 构建 Redis Key
      */
-    private String buildKey(String pattern, String type, String target) {
-        return String.format(pattern, type, target);
+    private String buildKey(String pattern, ITCEnum type, String target) {
+        return String.format(pattern, type.getType(), target);
     }
 
     /**

@@ -11,7 +11,6 @@ import top.flowerstardream.base.annotation.AutoConfigProperties;
  * @Description: 验证码配置
  */
 @Data
-@Component
 @AutoConfigProperties(prefix = "verify")
 @ConfigurationProperties(prefix = "verify")
 public class VerifyProperties {

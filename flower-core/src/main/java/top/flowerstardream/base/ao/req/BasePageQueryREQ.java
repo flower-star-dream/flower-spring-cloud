@@ -18,6 +18,7 @@ import java.io.Serializable;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "基础分页查询请求")
 public class BasePageQueryREQ implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;

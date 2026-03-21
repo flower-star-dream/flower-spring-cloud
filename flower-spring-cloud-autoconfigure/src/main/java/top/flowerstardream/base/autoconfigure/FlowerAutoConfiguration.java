@@ -1,7 +1,11 @@
 package top.flowerstardream.base.autoconfigure;
 
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.context.annotation.ComponentScan;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.annotation.Import;
+import top.flowerstardream.base.autoconfigure.config.ContextComponentConfig;
+import top.flowerstardream.base.autoconfigure.config.StateMachineEarlyConfiguration;
+import top.flowerstardream.base.config.AutoPropertiesConfig;
 
 /**
  * 自动配置类
@@ -9,14 +13,6 @@ import org.springframework.context.annotation.ComponentScan;
  * @date 2026/03/08/03:14
  */
 @AutoConfiguration
-@ComponentScan({
-    // 只扫描包含 Spring Bean 注解的包，排除纯工具类/常量包
-    "top.flowerstardream.base.service",
-    "top.flowerstardream.base.controller.common",
-    "top.flowerstardream.base.handler",
-    "top.flowerstardream.base.context",
-    "top.flowerstardream.base.beans.factory",
-    "top.flowerstardream.base.properties"
-})
+@Import({ContextComponentConfig.class, AutoPropertiesConfig.class})
 public class FlowerAutoConfiguration {
 }

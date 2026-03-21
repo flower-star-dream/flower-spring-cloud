@@ -19,7 +19,6 @@ import java.util.Base64;
  * @Date: 2026/03/11/15:58
  * @Description: AES 加密工具类
  */
-@Component
 public class AesEncryptUtil {
 
     @Resource

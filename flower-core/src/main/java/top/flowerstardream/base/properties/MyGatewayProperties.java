@@ -14,7 +14,6 @@ import java.util.List;
  * @Description: 网关配置
  */
 @Data
-@Component
 @AutoConfigProperties(prefix = "gateway")
 @ConfigurationProperties(prefix = "gateway")
 public class MyGatewayProperties {

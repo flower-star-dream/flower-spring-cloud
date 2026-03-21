@@ -21,7 +21,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
+import top.flowerstardream.base.handler.MyMetaObjectHandler;
 
 import java.util.List;
 
@@ -32,7 +34,7 @@ import java.util.List;
  */
 @Slf4j
 @AutoConfiguration
-@ConditionalOnClass(MybatisPlusInterceptor.class)
+@ConditionalOnClass({MybatisPlusInterceptor.class, MyMetaObjectHandler.class})
 public class MyBatisPlusConfig {
 
     /**
@@ -55,5 +57,11 @@ public class MyBatisPlusConfig {
     @ConditionalOnMissingBean
     public SqlSessionTemplate sqlSessionTemplate(SqlSessionFactory sqlSessionFactory) {
         return new SqlSessionTemplate(sqlSessionFactory);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public MyMetaObjectHandler myMetaObjectHandler() {
+        return new MyMetaObjectHandler();
     }
 }

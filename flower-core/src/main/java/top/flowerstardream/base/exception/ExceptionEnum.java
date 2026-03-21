@@ -30,7 +30,8 @@ public enum ExceptionEnum implements IExceptionEnum{
     POST_REQUEST_FAILED(10016, "POST请求失败"),
     FAILED_FILE_UPLOAD(10017, "文件上传失败"),
     FAILED_FILE_DOWNLOAD(10018, "文件下载失败"),
-    FAILED_FILE_DELETE(10019, "文件删除失败");
+    FAILED_FILE_DELETE(10019, "文件删除失败"),
+    JWT_EXPIRED(10020, "JWT过期");
 
 
     private final Integer code;

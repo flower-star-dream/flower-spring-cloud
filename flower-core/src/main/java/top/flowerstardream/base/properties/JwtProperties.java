@@ -15,7 +15,6 @@ import java.util.Map;
  * @Description: Jwt 配置
  */
 @Data
-@Component
 @AutoConfigProperties(prefix = "jwt")
 @ConfigurationProperties(prefix = "jwt")
 public class JwtProperties {

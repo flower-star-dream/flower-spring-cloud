@@ -1,5 +1,6 @@
 package top.flowerstardream.base.service;
 
+import top.flowerstardream.base.enums.ITCEnum;
 import top.flowerstardream.base.properties.OtherProperties;
 import top.flowerstardream.base.properties.VerifyProperties;
 
@@ -16,7 +17,7 @@ public interface VerificationCodeService {
      * @param target 目标
      * @param type  类型
      */
-    void sendCode(String target, String type);
+    void sendCode(String target, ITCEnum type);
 
     /**
      * 验证验证码
@@ -27,15 +28,15 @@ public interface VerificationCodeService {
      * @return true-验证成功，false-验证失败（验证码错误）
      * @throws RuntimeException 验证码过期或已被锁定
      */
-    boolean verifyCode(String target, String type, String inputCode);
+    boolean verifyCode(String target, ITCEnum type, String inputCode);
 
     /**
      * 重新发送验证码（便捷方法）
      */
-    void resendCode(String target, String type);
+    void resendCode(String target, ITCEnum type);
 
     /**
      * 获取剩余有效时间（用于前端显示）
      */
-    Long getRemainingTime(String target, String type);
+    Long getRemainingTime(String target, ITCEnum type);
 }

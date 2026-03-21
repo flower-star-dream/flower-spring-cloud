@@ -23,11 +23,11 @@ public class TimeAuditBaseEO extends BaseEO {
     @Serial
     private static final long serialVersionUID = 1L;
     @TableField(value = "create_time", fill = FieldFill.INSERT)
-    protected LocalDateTime createTime;
+    private LocalDateTime createTime;
     @TableField(value = "update_time", fill = FieldFill.INSERT_UPDATE)
-    protected LocalDateTime updateTime;
+    private LocalDateTime updateTime;
     @TableField(value = "create_person_id", fill = FieldFill.INSERT)
-    protected Long createPersonId;
+    private Long createPersonId;
     @TableField(value = "update_person_id", fill = FieldFill.INSERT_UPDATE)
-    protected Long updatePersonId;
+    private Long updatePersonId;
 }

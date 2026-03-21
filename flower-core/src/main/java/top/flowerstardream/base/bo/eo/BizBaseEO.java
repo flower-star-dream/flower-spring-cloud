@@ -28,7 +28,7 @@ public class BizBaseEO<E extends IEnum<?> & IBaseState<?>> extends AuditBaseEO{
     protected Boolean deleted;
     @Version
     @TableField(value = "version")
-    protected Integer version;
+    private Integer version;
     @TableField("status")
-    protected E status;
+    private E status;
 }

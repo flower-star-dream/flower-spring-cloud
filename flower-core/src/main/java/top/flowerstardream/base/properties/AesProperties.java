@@ -11,7 +11,6 @@ import top.flowerstardream.base.annotation.AutoConfigProperties;
  * @Description: AES 加密配置
  */
 @Data
-@Component
 @AutoConfigProperties(prefix = "aes")
 @ConfigurationProperties(prefix = "aes")
 public class AesProperties {

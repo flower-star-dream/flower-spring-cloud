@@ -14,7 +14,6 @@ import java.io.Serializable;
  * @Description: Minio 配置
  */
 @Data
-@Component
 @AutoConfigProperties(prefix = "minio")  // 文件上传 配置前缀file.oss
 @ConfigurationProperties(prefix = "minio")
 public class MinioProperties implements Serializable {

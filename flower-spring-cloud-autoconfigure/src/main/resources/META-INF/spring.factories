@@ -1,0 +1,4 @@
+# ???????
+org.springframework.boot.BootstrapRegistryInitializer = top.flowerstardream.base.listener.SpringBootStartupTracer
+# ?????
+org.springframework.context.ApplicationListener = top.flowerstardream.base.listener.SpringBootStartupTracer

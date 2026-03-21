@@ -3,7 +3,9 @@ package top.flowerstardream.base.beans.factory;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.BeanDefinitionBuilder;
 import org.springframework.beans.factory.support.BeanDefinitionRegistry;
 import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
@@ -28,15 +30,12 @@ import static org.springframework.core.Ordered.HIGHEST_PRECEDENCE;
 @Slf4j
 public class StateMachineBeanRegistrar implements BeanDefinitionRegistryPostProcessor, PriorityOrdered {
 
-    // 保存 registry 供后续使用
-    private BeanDefinitionRegistry registry;
-
     /**
      * 在 Bean 定义注册阶段保存 registry 引用，以便在后续工厂处理阶段使用
      */
     @Override
     public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
-        this.registry = registry;
+
     }
 
     /**
@@ -46,13 +45,14 @@ public class StateMachineBeanRegistrar implements BeanDefinitionRegistryPostProc
     @Override
     @SuppressWarnings("unchecked")
     public void postProcessBeanFactory(ConfigurableListableBeanFactory factory) throws BeansException {
-        // 如果 registry 尚未初始化且 factory 可转换，则进行赋值
-        if (this.registry == null && factory instanceof BeanDefinitionRegistry) {
-            this.registry = (BeanDefinitionRegistry) factory;
-        }
+
+        // 安全获取registry
+        BeanDefinitionRegistry registry = (factory instanceof BeanDefinitionRegistry)
+            ? (BeanDefinitionRegistry) factory
+            : null;
 
         // 确保 registry 可用，否则抛出异常
-        if (this.registry == null) {
+        if (registry == null) {
             throw new IllegalStateException("BeanDefinitionRegistry not available");
         }
 
@@ -83,6 +83,11 @@ public class StateMachineBeanRegistrar implements BeanDefinitionRegistryPostProc
 
             // 生成状态机 Bean 的名称
             String machineName = generateMachineName(routerName);
+            // 检查是否已存在，避免重复注册
+            if (registry.containsBeanDefinition(machineName)) {
+                log.debug(">>> 状态机 {} 已存在，跳过", machineName);
+                continue;
+            }
             log.debug(">>> 注册状态机：{}", machineName);
 
             // 构建状态机工厂 Bean 的定义
@@ -95,7 +100,9 @@ public class StateMachineBeanRegistrar implements BeanDefinitionRegistryPostProc
                     // 注入数据实体类
                 .addConstructorArgValue(dataClass)       
                     // 注入路由 Bean 引用
-                .addPropertyReference("router", routerName); 
+                .addPropertyReference("router", routerName)
+                    // 确保提前实例化（如果需要）
+                .setLazyInit(false);
 
             // 注册 Bean 定义到容器
             registry.registerBeanDefinition(machineName, builder.getBeanDefinition());
@@ -103,13 +110,31 @@ public class StateMachineBeanRegistrar implements BeanDefinitionRegistryPostProc
         }
     }
 
+    private Class<?> resolveBeanClass(BeanDefinition def, String beanName) {
+        // 优先从resolvedClass获取，避免过早触发类加载
+        if (def instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) def).hasBeanClass()) {
+            return ((AbstractBeanDefinition) def).getBeanClass();
+        }
+        String className = def.getBeanClassName();
+        if (className == null) {
+            return null;
+        }
+        try {
+            return Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            log.warn("无法加载类: {}", className);
+            return null;
+        }
+    }
+
     /**
-     * 设置执行优先级为最高，确保在其他处理器之前执行
+     * 设置执行优先级
      */
     @Override
     public int getOrder() {
-        // 确保尽早执行
-        return HIGHEST_PRECEDENCE;
+        // 在常规Processor之后，但在Bean实例化之前
+        // 确保在ConfigurationClassPostProcessor之后执行（它处理@ComponentScan）
+        return LOWEST_PRECEDENCE - 100;
     }
 
     /**

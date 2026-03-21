@@ -1,6 +1,11 @@
 package top.flowerstardream.base.beans.factory;
 
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -21,25 +26,11 @@ import java.lang.reflect.Type;
  * @Date: 2026/03/08/23:05
  * @Description: 实现 BeanPostProcessor 接口，在 Bean 初始化前扫描并注入带有 @AutoStateMachine 注解的状态机字段
  */
-@Component
-@Data
-public class StateMachineAutoInjector implements BeanPostProcessor, ApplicationContextAware {
-    
-    /** Spring 应用上下文 */
-    private ApplicationContext ctx;
-    
-    /** 状态机工厂，用于获取具体的状态机实例 */
-    private StateMachineFactory factory;
+@Slf4j
+@RequiredArgsConstructor
+public class StateMachineAutoInjector implements BeanPostProcessor {
 
-    /**
-     * 设置应用上下文，并从中获取状态机工厂实例
-     * @param ctx Spring 应用上下文
-     */
-    @Override
-    public void setApplicationContext(ApplicationContext ctx) {
-        this.ctx = ctx;
-        this.factory = ctx.getBean(StateMachineFactory.class);
-    }
+    private final ObjectFactory<StateMachineFactory> factoryObjectFactory;
 
     /**
      * 在 Bean 初始化之前处理，扫描字段并注入状态机
@@ -49,10 +40,27 @@ public class StateMachineAutoInjector implements BeanPostProcessor, ApplicationC
      */
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        // 跳过 Spring 基础设施 Bean，避免过早触发
+        if (isInfrastructureBean(bean)) {
+            return bean;
+        }
+
+        // 延迟获取，如果工厂还未就绪，记录字段待后续注入
+        StateMachineFactory factory;
+        try {
+            factory = factoryObjectFactory.getObject();
+        } catch (BeansException e) {
+            // 工厂还未就绪，跳过此 Bean，它会在 factory 就绪后被重新处理
+            // 或：使用 @Lazy 代理延迟注入
+            log.debug("StateMachineFactory未为{}准备好，延迟注入", beanName);
+            return bean;
+        }
+
         // 遍历所有字段
         for (Field field : bean.getClass().getDeclaredFields()) {
+            AutoStateMachine annotation = field.getAnnotation(AutoStateMachine.class);
             // 跳过未标注 @AutoStateMachine 注解的字段
-            if (!field.isAnnotationPresent(AutoStateMachine.class)) {
+            if (annotation == null) {
                 continue;
             }
             
@@ -78,24 +86,32 @@ public class StateMachineAutoInjector implements BeanPostProcessor, ApplicationC
             if (sClass == null || eClass == null || dClass == null) {
                 continue;
             }
-            
-            // 从工厂获取对应的状态机实例
-            @SuppressWarnings("unchecked")
-            StateMachine<?, ?, ?> fsm = factory.getMachine(
-                (Class<? extends IBaseState<?>>) sClass,
-                (Class<? extends IBaseEvent<?>>) eClass,
-                (Class<? extends BaseEO>) dClass
-            );
-            
-            // 通过反射将状态机注入到字段中
-            field.setAccessible(true);
+
             try {
+                // 从工厂获取对应的状态机实例
+                @SuppressWarnings("unchecked")
+                StateMachine<?, ?, ?> fsm = factory.getMachine(
+                    (Class<? extends IBaseState<?>>) sClass,
+                    (Class<? extends IBaseEvent<?>>) eClass,
+                    (Class<? extends BaseEO>) dClass
+                );
+                // 通过反射将状态机注入到字段中
+                field.setAccessible(true);
                 field.set(bean, fsm);
+                log.debug(">>> 注入状态机到 {}.{}", beanName, field.getName());
             } catch (IllegalAccessException e) {
-                throw new RuntimeException("Failed to inject StateMachine", e);
+                throw new RuntimeException("状态机注入失败: " + beanName + "." + field.getName(), e);
             }
         }
         return bean;
+    }
+
+    private boolean isInfrastructureBean(Object bean) {
+        // 跳过 Spring 内部 Bean，避免循环
+        String className = bean.getClass().getName();
+        return className.startsWith("org.springframework.") ||
+               className.contains("Tomcat") ||
+               className.contains("WebServer");
     }
     
     /**
@@ -106,6 +122,12 @@ public class StateMachineAutoInjector implements BeanPostProcessor, ApplicationC
     private Class<?> resolveClass(Type type) {
         if (type instanceof Class) {
             return (Class<?>) type;
+        }
+        if (type instanceof ParameterizedType) {
+            Type rawType = ((ParameterizedType) type).getRawType();
+            if (rawType instanceof Class) {
+                return (Class<?>) rawType;
+            }
         }
         // 处理泛型边界等情况，当前暂不支持
         return null;

@@ -10,10 +10,9 @@ import top.flowerstardream.base.annotation.AutoConfigProperties;
  * @Date: 2025/10/30/19:15
  * @Description: 线程池属性
  */
-@Component
+@Data
 @AutoConfigProperties(prefix = "thread-pool")
 @ConfigurationProperties(prefix = "thread-pool")
-@Data
 public class ThreadPoolProperties {
     /**
      * 线程池配置基类

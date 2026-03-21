@@ -11,6 +11,14 @@ top.flowerstardream.base.autoconfigure.StateMachineAutoConfiguration
 # MinIO 配置类
 top.flowerstardream.base.autoconfigure.MinIOConfig
 # 微信支付配置类
-top.flowerstardream.base.autoconfigure.WeChatPayUtil
+top.flowerstardream.base.autoconfigure.WeChatPayConfig
 # 用户名解析器
 top.flowerstardream.base.autoconfigure.UserNameResolverConfiguration
+# JWT 配置类
+top.flowerstardream.base.autoconfigure.JwtConfig
+# 共享方法级安全配置类
+top.flowerstardream.base.autoconfigure.SharedMethodSecurityConfig
+# 业务组件自动配置类
+top.flowerstardream.base.autoconfigure.BusinessUnderComponentAutoConfig
+# Bean生命周期追踪自动配置类
+top.flowerstardream.base.autoconfigure.BeanTracerAutoConfiguration
