@@ -55,6 +55,12 @@
             <artifactId>minio</artifactId>
             <optional>true</optional>
         </dependency>
+        <!--微信支付-->
+        <dependency>
+            <groupId>com.github.wechatpay-apiv3</groupId>
+            <artifactId>wechatpay-java</artifactId>
+            <optional>true</optional>
+        </dependency>
     </dependencies>
 
     <build>

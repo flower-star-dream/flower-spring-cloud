@@ -16,6 +16,8 @@ import com.wechat.pay.java.service.refund.model.CreateRequest;
 import com.wechat.pay.java.service.refund.model.Refund;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.Resource;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import top.flowerstardream.base.exception.BizException;
@@ -30,41 +32,16 @@ import static top.flowerstardream.base.exception.ExceptionEnum.PAYMENT_ERROR;
  * @author 花海
  */
 @Slf4j
+@RequiredArgsConstructor
 public class WeChatPayUtil {
 
-    @Resource
-    private WeChatProperties weChatProperties;
+    private final WeChatProperties weChatProperties;
 
-    @Resource
-    private JsapiService jsapiService;
+    private final JsapiService jsapiService;
 
-    @Resource
-    private JsapiServiceExtension jsapiServiceExtension;
+    private final JsapiServiceExtension jsapiServiceExtension;
 
-    @Resource
-    private RefundService refundService;
-
-    /**
-     * 初始化配置和服务
-     * 使用 RSAAutoCertificateConfig 自动更新平台证书
-     */
-    @PostConstruct
-    public void init() {
-        // 配置自动更新平台证书
-        Config config = new RSAAutoCertificateConfig.Builder()
-                .merchantId(weChatProperties.getMchid())
-                .privateKeyFromPath(weChatProperties.getPrivateKeyFilePath())
-                .merchantSerialNumber(weChatProperties.getMchSerialNo())
-                .apiV3Key(weChatProperties.getApiV3Key())
-                .build();
-
-        // 初始化服务
-        this.jsapiService = new JsapiService.Builder().config(config).build();
-        this.jsapiServiceExtension = new JsapiServiceExtension.Builder().config(config).build();
-        this.refundService = new RefundService.Builder().config(config).build();
-
-        log.info("微信支付服务初始化完成");
-    }
+    private final RefundService refundService;
 
     /**
      * 小程序支付 - 调起支付
@@ -121,7 +98,7 @@ public class WeChatPayUtil {
      */
     public String jsapi(String orderNum, BigDecimal total, String description, String openid) {
         try {
-            PrepayRequest request = prepayReq(orderNum, total, description, openid);;
+            PrepayRequest request = prepayReq(orderNum, total, description, openid);
             // 调用基础接口，只返回 prepay_id
             PrepayResponse response = jsapiService.prepay(request);
             return response.getPrepayId();

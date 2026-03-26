@@ -77,6 +77,8 @@ public class SpringBootStartupTracer implements
     private ConfigurableApplicationContext applicationContext;
     private static boolean rulesLoaded = false;
 
+    private static final Map<Class<? extends ApplicationEvent>, AtomicBoolean> loadingEvents = new ConcurrentHashMap<>();
+
     public SpringBootStartupTracer(BeanTracerProperties properties) {
         SpringBootStartupTracer.properties = properties;
         // 构造器里先加载简单规则，复杂类加载等Environment准备好后
@@ -100,11 +102,17 @@ public class SpringBootStartupTracer implements
     @Override
     public void onApplicationEvent(@NotNull ApplicationEvent event) {
         System.out.println(">>> 收到事件: " + event.getClass().getSimpleName());
-        if (event instanceof ApplicationStartingEvent) {
+        if (event instanceof ApplicationStartingEvent e) {
+            if(isLoaded(e.getClass())) {
+                return;
+            }
             System.out.println(">>> ApplicationStartingEvent 收到");
             enterPhase("STARTING", "应用启动中 - Environment准备前",
                 "Environment 准备前，监听器已注册");
         } else if (event instanceof ApplicationEnvironmentPreparedEvent e) {
+            if(isLoaded(e.getClass())) {
+                return;
+            }
             System.out.println(">>> ApplicationEnvironmentPreparedEvent 收到");
             enterPhase("ENV_PREPARED", "Environment 准备完成",
                 "application.properties/yml 已加载，ConfigurableEnvironment 就绪");
@@ -119,11 +127,17 @@ public class SpringBootStartupTracer implements
             }
             loadTraceRules(e.getEnvironment());
         } else if (event instanceof ApplicationContextInitializedEvent e) {
+            if(isLoaded(e.getClass())) {
+                return;
+            }
             System.out.println(">>> ApplicationContextInitializedEvent 收到");
             enterPhase("CONTEXT_INIT", "ApplicationContext 初始化完成",
                 "AnnotationConfigServletWebServerApplicationContext 已创建");
             this.applicationContext = e.getApplicationContext();
-        } else if (event instanceof ContextRefreshedEvent) {
+        } else if (event instanceof ContextRefreshedEvent e) {
+            if(isLoaded(e.getClass())) {
+                return;
+            }
             System.out.println(">>> ContextRefreshedEvent 收到");
             if (!enabled.get()) {
                 return;
@@ -131,7 +145,10 @@ public class SpringBootStartupTracer implements
             enterPhase("REFRESHED", "容器刷新完成",
                 "所有 Bean 定义已加载，即将开始实例化");
             printBeanDefinitionReport();
-        } else if (event instanceof ApplicationReadyEvent) {
+        } else if (event instanceof ApplicationReadyEvent e) {
+            if(isLoaded(e.getClass())) {
+                return;
+            }
             System.out.println(">>> ApplicationReadyEvent 收到");
             if (!enabled.get()) {
                 return;
@@ -140,6 +157,9 @@ public class SpringBootStartupTracer implements
                 "所有 Bean 实例化完成，ApplicationRunner/CommandLineRunner 即将执行");
             printFinalReport();
         } else if (event instanceof ApplicationFailedEvent e) {
+            if(isLoaded(e.getClass())) {
+                return;
+            }
             System.out.println(">>> ApplicationFailedEvent 收到");
             enterPhase("FAILED", "启动失败", e.getException().getMessage());
         }
@@ -587,6 +607,15 @@ public class SpringBootStartupTracer implements
         }
 
         rulesLoaded = true;
+    }
+
+    private boolean isLoaded(Class<? extends ApplicationEvent> event) {
+        if (loadingEvents.get(event) == null || !loadingEvents.get(event).get()){
+            loadingEvents.put(event, new AtomicBoolean(true));
+            return false;
+        } else {
+            return loadingEvents.get(event).get();
+        }
     }
 
     private String getCostTimeFormat(long costTime) {

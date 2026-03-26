@@ -1,87 +1,269 @@
 # Flower Spring Cloud
 
-一个自定义的 Spring Cloud 微服务基础框架，提供统一的依赖管理、自动配置和核心功能支持。
+微服务基础框架，提供自主研发的状态机引擎、Bean全生命周期追踪、统一异常处理、基础实体类等核心能力。
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://github.com/flower-star-dream/flower-spring-cloud/blob/main/LICENSE)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.12-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2025.0.1-brightgreen.svg)](https://spring.io/projects/spring-cloud)
+[![JDK](https://img.shields.io/badge/JDK-17+-orange.svg)](https://openjdk.org/)
 
 ## 项目简介
 
-Flower Spring Cloud 是一个为微服务架构设计的基础框架起步依赖，整合了 Spring Cloud、Spring Cloud Alibaba、MyBatis-Plus 等主流技术栈，提供标准化的开发规范和基础设施支持。
+Flower Spring Cloud 是一个基于 Spring Boot 3.x 和 Spring Cloud 的微服务基础框架，旨在为微服务架构提供统一的基础能力支撑。框架采用模块化设计，核心功能自主研发，不依赖外部状态机框架。
 
-## 功能特性
+### 核心特性
 
-- **统一依赖管理**: 集中管理 Spring Cloud、Spring Boot、MyBatis-Plus 等组件版本
-- **基础实体封装**: 提供包含通用字段（ID、时间戳、逻辑删除等）的基础实体类
-- **统一响应格式**: 标准化的 API 响应封装（Result、PageResult）
-- **异常处理体系**: 业务异常（BizException）和全局异常处理器
-- **状态机框架**: 基于 Spring State Machine 的状态流转引擎
-- **自动分页查询**: 支持动态查询条件构建的增强型 Mapper
-- **线程池配置**: 预置业务、通用、消息三种线程池，支持线程上下文传递
-- **JWT 认证支持**: 内置 JWT 令牌配置和解析工具
-- **文件存储服务**: 支持 MinIO 对象存储的文件上传下载接口
+- **自主研发状态机引擎** - 不依赖 Spring State Machine 等外部框架，自研轻量级状态机实现
+- **Bean 全生命周期追踪** - 从 Bootstrap 到启动完成的 8 阶段完整追踪
+- **丰富的基础实体类** - 提供多种审计字段组合的基础实体
+- **统一异常处理** - 标准化业务异常体系
+- **自动配置** - 开箱即用，零配置启动
 
 ## 技术栈
 
 | 技术 | 版本 |
 |------|------|
-| JDK | 17 |
-| Spring Boot | 3.4.12 |
-| Spring Cloud | 2023.0.6 |
-| Spring Cloud Alibaba | 2023.0.3.3 |
-| MyBatis Plus | 3.5.5 |
-| Seata | 2.5.0 |
-| RocketMQ | 5.3.2 |
-| Knife4j | 4.5.0 |
-| JWT | 0.12.6 |
-| Fastjson2 | 2.0.49 |
+| Spring Boot | 3.5.12 |
+| Spring Cloud | 2025.0.1 |
+| JDK | 17+ |
+| MyBatis Plus | 3.5.15 |
 | Hutool | 5.8.40 |
-| MinIO | 8.5.10 |
-| Spring State Machine | 4.0.0 |
 
 ## 模块结构
 
 ```
 flower-spring-cloud
-├── flower-core                          # 核心功能模块
+├── flower-core                          # 核心模块
+│   ├── annotation                       # 注解
+│   │   ├── AutoStateMachine            # 自动注入状态机
+│   │   ├── TraceLifecycle              # 生命周期追踪
+│   │   ├── StateRouter                 # 状态路由标记
+│   │   └── ...
+│   ├── beans/factory                    # Bean工厂
+│   │   ├── StateMachineFactory         # 状态机工厂
+│   │   ├── StateMachineFactoryBean     # 状态机 FactoryBean
+│   │   └── StateMachineBeanRegistrar   # 状态机 Bean 注册器
+│   ├── bo/eo                            # 基础实体类
+│   │   ├── BaseEO                      # 基础实体（仅ID）
+│   │   ├── AuditBaseEO                 # 审计实体（ID+时间+操作人）
+│   │   ├── TimeAuditBaseEO             # 时间审计实体（ID+时间）
+│   │   ├── BizBaseEO                   # 业务实体（ID+状态）
+│   │   └── LogBaseEO                   # 日志实体
+│   ├── listener                         # 监听器
+│   │   └── SpringBootStartupTracer     # Bean全生命周期追踪器
+│   ├── properties                       # 配置属性
+│   │   └── BeanTracerProperties        # 追踪器配置
+│   ├── state                            # 状态机引擎
+│   │   ├── StateMachine                # 状态机核心类
+│   │   ├── IStateRouter                # 状态路由接口
+│   │   ├── IBaseState                  # 状态接口
+│   │   └── IBaseEvent                  # 事件接口
+│   └── ...
 ├── flower-spring-cloud-autoconfigure    # 自动配置模块
-├── flower-spring-cloud-starter          # Starter 起步依赖模块
-└── flower-spring-cloud-dependencies     # 依赖管理模块 (BOM)
+└── flower-spring-cloud-starter          # 起步依赖模块
 ```
 
-### 模块说明
+## 核心功能详解
 
-#### flower-core
-核心功能模块，包含：
-- 基础实体类（BaseEO）
-- 增强型 Mapper（BaseMapperX）
-- 统一响应结果（Result、PageResult）
-- 异常处理体系
-- 状态机框架
-- 线程池配置
-- 工具类
+### 1. 自主研发状态机引擎
 
-#### flower-spring-cloud-autoconfigure
-自动配置模块，基于 Spring Boot 自动配置机制，自动装配核心功能。
+状态机引擎完全自主研发，不依赖 Spring State Machine 等外部框架，核心组件包括：
 
-#### flower-spring-cloud-starter
-Starter 起步依赖模块，业务项目直接引入此模块即可获得完整的基础能力。
+#### 核心接口与类
 
-#### flower-spring-cloud-dependencies
-依赖管理模块（BOM），统一管理所有子模块和第三方依赖的版本。
+| 组件 | 说明 |
+|------|------|
+| `StateMachine<S, E, D>` | 状态机核心类，负责状态转换执行 |
+| `IStateRouter<S, E, D>` | 状态路由接口，业务实现此接口定义状态流转规则 |
+| `IBaseState<C>` | 状态接口，状态枚举需实现此接口 |
+| `IBaseEvent<C>` | 事件接口，事件枚举需实现此接口 |
+| `StateMachineFactory` | 状态机工厂，负责创建和管理状态机实例 |
+| `StateMachineBeanRegistrar` | Bean 注册器，扫描并自动注册状态机 |
+
+#### 使用示例
+
+**定义状态枚举：**
+
+```java
+public enum OrderStatus implements IBaseState<Integer> {
+    PENDING_PAYMENT(1, "待支付"),
+    PAID(2, "已支付"),
+    SHIPPED(3, "已发货"),
+    COMPLETED(4, "已完成"),
+    CANCELLED(5, "已取消");
+
+    private final Integer code;
+    private final String name;
+
+    @Override
+    public Integer getCode() { return code; }
+
+    @Override
+    public String getName() { return name; }
+}
+```
+
+**定义事件枚举：**
+
+```java
+public enum OrderEvent implements IBaseEvent<Integer> {
+    PAY(1, "支付"),
+    SHIP(2, "发货"),
+    COMPLETE(3, "完成"),
+    CANCEL(4, "取消");
+
+    private final Integer code;
+    private final String name;
+
+    @Override
+    public Integer getCode() { return code; }
+
+    @Override
+    public String getName() { return name; }
+}
+```
+
+**实现状态路由：**
+
+```java
+@Service
+@StateRouter
+public class OrderStateRouter implements IStateRouter<OrderStatus, OrderEvent, OrderEO> {
+
+    @Override
+    public Map<OrderStatus, Map<OrderEvent, OrderStatus>> getStateEventTargetConfig() {
+        Map<OrderStatus, Map<OrderEvent, OrderStatus>> config = new HashMap<>();
+
+        // 待支付 -> 支付 -> 已支付
+        config.put(PENDING_PAYMENT, Map.of(PAY, PAID));
+        // 已支付 -> 发货 -> 已发货
+        config.put(PAID, Map.of(SHIP, SHIPPED));
+        // 已发货 -> 完成 -> 已完成
+        config.put(SHIPPED, Map.of(COMPLETE, COMPLETED));
+
+        return config;
+    }
+
+    @Override
+    public Map<OrderEvent, Function<StateRouteParams, OrderStatus>> getEventDispatcher() {
+        Map<OrderEvent, Function<StateRouteParams, OrderStatus>> dispatcher = new HashMap<>();
+
+        dispatcher.put(PAY, params -> {
+            // 执行业务逻辑
+            return PAID;
+        });
+
+        return dispatcher;
+    }
+}
+```
+
+**触发状态转换：**
+
+```java
+@Service
+public class OrderService {
+
+    @Autowired
+    private StateMachine<OrderStatus, OrderEvent, OrderEO> orderMachine;
+
+    public void payOrder(Long orderId) {
+        OrderEO order = getById(orderId);
+
+        // 触发状态转换
+        OrderStatus newStatus = orderMachine.fire(
+            OrderStatus.valueOf(order.getStatus()),
+            OrderEvent.PAY,
+            new StateRouteParams(orderId, order)
+        );
+
+        // 更新状态
+        order.setStatus(newStatus.getCode());
+        updateById(order);
+    }
+}
+```
+
+### 2. Bean 全生命周期追踪器
+
+`SpringBootStartupTracer` 是一个强大的 Bean 生命周期追踪组件，实现了从 Bootstrap 到应用启动完成的 8 个阶段完整追踪：
+
+#### 实现的扩展点
+
+| 阶段 | 接口 | 说明 |
+|------|------|------|
+| 1 | `BootstrapRegistryInitializer` | 极早期（SpringApplication 创建前） |
+| 2 | `ApplicationListener` | 环境准备 & 上下文事件 |
+| 3 | `BeanDefinitionRegistryPostProcessor` | Bean 定义注册阶段 |
+| 4 | `BeanFactoryPostProcessor` | Bean 工厂后置处理 |
+| 5 | `InstantiationAwareBeanPostProcessor` | Bean 实例化前后 |
+| 6 | `BeanPostProcessor` | Bean 初始化前后 |
+| 7 | `SmartInitializingSingleton` | 所有单例就绪后 |
+| 8 | `CommandLineRunner` | 应用启动完成前 |
+
+#### 配置属性
+
+```yaml
+bean:
+  tracer:
+    enabled: true                      # 是否启用
+    base-packages:                     # 追踪的包路径
+      - com.example.service
+    interface-classes:                 # 追踪的接口
+      - com.example.StateMachine
+    annotation-classes:                # 追踪的注解
+      - org.springframework.stereotype.Service
+    name-patterns:                     # 名称匹配模式
+      - Machine
+      - Router
+    verbose: false                     # 是否打印所有 Bean
+```
+
+#### 输出示例
+
+```
+╔════════════════════════════════════════════════════════════════╗
+║                  应用启动完成 - Bean生命周期报告                   ║
+╠════════════════════════════════════════════════════════════════╣
+║ 启动总耗时: 3.21s                                               ║
+║ 追踪Bean数: 15 个                                               ║
+╠════════════════════════════════════════════════════════════════╣
+║ Bean名称                          状态     耗时    来源           ║
+╠════════════════════════════════════════════════════════════════╣
+║ orderStateMachine                 READY    15ms   自动配置        ║
+║ userService                       READY    23ms   组件扫描        ║
+╚════════════════════════════════════════════════════════════════╝
+```
+
+### 3. 基础实体类
+
+框架提供多种基础实体类，满足不同场景的审计需求：
+
+| 实体类 | 字段 | 适用场景 |
+|--------|------|----------|
+| `BaseEO` | id | 简单实体，仅需主键 |
+| `TimeAuditBaseEO` | id + createTime + updateTime | 需要时间审计 |
+| `AuditBaseEO` | id + 时间 + createPersonId + updatePersonId | 需要完整审计信息 |
+| `BizBaseEO` | id + status | 带状态的实体 |
+| `LogBaseEO` | id + 日志相关字段 | 日志记录 |
+
+使用示例：
+
+```java
+@Data
+@TableName("t_order")
+public class OrderEO extends AuditBaseEO {
+    private String orderNo;
+    private BigDecimal amount;
+    private Integer status;
+}
+```
 
 ## 快速开始
 
-### 1. 引入依赖
+### 1. 添加依赖
 
-在业务项目的 `pom.xml` 中添加：
-
-```xml
-<dependency>
-    <groupId>top.flowerstardream.base</groupId>
-    <artifactId>flower-spring-cloud-starter</artifactId>
-    <version>release-1.0.0</version>
-</dependency>
-```
-
-或者通过 BOM 管理依赖：
+在业务项目的 `pom.xml` 中引入 BOM：
 
 ```xml
 <dependencyManagement>
@@ -97,261 +279,66 @@ Starter 起步依赖模块，业务项目直接引入此模块即可获得完整
 </dependencyManagement>
 ```
 
-### 2. 基础实体类
-
-业务实体继承 `BaseEO`：
-
-```java
-@Data
-@TableName("user")
-public class User extends BaseEO {
-    private String username;
-    private String email;
-}
-```
-
-`BaseEO` 提供以下通用字段：
-- `id`: 主键（雪花算法生成）
-- `createTime`: 创建时间
-- `updateTime`: 更新时间
-- `createPersonId`: 创建人 ID
-- `updatePersonId`: 更新人 ID
-- `deleted`: 逻辑删除标记
-- `version`: 乐观锁版本号
-
-### 3. 基础 Mapper
-
-```java
-@Mapper
-public interface UserMapper extends BaseMapperX<User> {
-}
-```
-
-使用 `BaseMapperX` 的自动分页功能：
-
-```java
-// 自动构建查询条件并分页
-Page<User> page = userMapper.autoPage(userQueryDTO, true);
-```
-
-### 4. 基础 Service
-
-```java
-public interface UserService extends IBaseService<User> {
-}
-
-@Service
-public class UserServiceImpl extends BaseServiceImpl<UserMapper, User> implements UserService {
-}
-```
-
-### 5. 统一响应
-
-Controller 层返回统一格式：
-
-```java
-@RestController
-@RequestMapping("/user")
-public class UserController {
-
-    @GetMapping("/{id}")
-    public Result<User> getById(@PathVariable Long id) {
-        User user = userService.getById(id);
-        return Result.success(user);
-    }
-
-    @GetMapping("/page")
-    public Result<PageResult<User>> page(UserQueryDTO dto) {
-        Page<User> page = userService.autoPage(dto, true);
-        return Result.success(PageResult.of(page));
-    }
-}
-```
-
-## 核心功能详解
-
-### 状态机
-
-基于 Spring State Machine 实现的状态流转框架。
-
-#### 定义状态和事件
-
-```java
-public enum OrderStatus implements IBaseState<Integer> {
-    PENDING_PAYMENT(1, "待付款"),
-    PAID(2, "已付款"),
-    SHIPPED(3, "已发货"),
-    COMPLETED(4, "已完成");
-
-    private final Integer code;
-    private final String name;
-
-    // getter...
-}
-
-public enum OrderEvent implements IBaseEvent<String> {
-    PAY("PAY", "支付"),
-    SHIP("SHIP", "发货"),
-    COMPLETE("COMPLETE", "完成");
-
-    private final String code;
-    private final String name;
-
-    // getter...
-}
-```
-
-#### 配置状态路由
-
-```java
-@Service
-public class OrderRouter extends BaseRouter<Order, OrderMapper> implements IStateRouter<OrderStatus, OrderEvent, Order, OrderDTO> {
-
-    @Override
-    public Map<OrderStatus, Map<OrderEvent, OrderStatus>> getStateEventTargetConfig() {
-        Map<OrderStatus, Map<OrderEvent, OrderStatus>> config = new HashMap<>();
-        // 待付款 -> 支付 -> 已付款
-        config.put(OrderStatus.PENDING_PAYMENT, Map.of(OrderEvent.PAY, OrderStatus.PAID));
-        // 已付款 -> 发货 -> 已发货
-        config.put(OrderStatus.PAID, Map.of(OrderEvent.SHIP, OrderStatus.SHIPPED));
-        // 已发货 -> 完成 -> 已完成
-        config.put(OrderStatus.SHIPPED, Map.of(OrderEvent.COMPLETE, OrderStatus.COMPLETED));
-        return config;
-    }
-
-    @Override
-    public Map<OrderEvent, Function<OrderDTO, OrderStatus>> getEventDispatcher() {
-        Map<OrderEvent, Function<OrderDTO, OrderStatus>> dispatcher = new HashMap<>();
-        dispatcher.put(OrderEvent.PAY, this::handlePay);
-        dispatcher.put(OrderEvent.SHIP, this::handleShip);
-        dispatcher.put(OrderEvent.COMPLETE, this::handleComplete);
-        return dispatcher;
-    }
-
-    private OrderStatus handlePay(OrderDTO dto) {
-        // 处理支付逻辑
-        return OrderStatus.PAID;
-    }
-
-    // 其他事件处理...
-}
-```
-
-#### 触发状态流转
-
-```java
-@Service
-public class OrderService {
-    @Autowired
-    private StateMachine<OrderStatus, OrderEvent, Order, OrderDTO> stateMachine;
-
-    public void pay(Long orderId) {
-        Order order = getById(orderId);
-        OrderDTO dto = new OrderDTO();
-        dto.setId(orderId);
-
-        OrderStatus newStatus = stateMachine.fire(
-            OrderStatus.valueOf(order.getStatus()),
-            OrderEvent.PAY,
-            dto
-        );
-
-        // 更新订单状态
-        order.setStatus(newStatus.getCode());
-        updateById(order);
-    }
-}
-```
-
-### 动态查询条件
-
-使用 `@Query` 注解定义查询条件：
-
-```java
-@Data
-public class UserQueryDTO {
-
-    @Query.Condition(type = Query.Condition.Type.LIKE)
-    private String username;
-
-    @Query.Condition(type = Query.Condition.Type.GE, field = "create_time")
-    private LocalDateTime startTime;
-
-    @Query.Condition(type = Query.Condition.Type.LE, field = "create_time")
-    private LocalDateTime endTime;
-
-    @Query.Condition(type = Query.Condition.Type.IN)
-    private List<Integer> statusList;
-
-    @Query.Ignore
-    private String ignoreField;
-}
-```
-
-支持的查询类型：
-- `EQ`: 等于
-- `NE`: 不等于
-- `LIKE`: 模糊查询
-- `GT`: 大于
-- `GE`: 大于等于
-- `LT`: 小于
-- `LE`: 小于等于
-- `IN`: IN 查询
-- `NOT_IN`: NOT IN 查询
-- `BETWEEN`: BETWEEN 查询
-- `NOT_BETWEEN`: NOT BETWEEN 查询
-
-## 配置说明
-
-### JWT 配置
-
-```yaml
-hcd:
-  jwt:
-    employee-secret-key: your-employee-secret-key
-    employee-ttl: 7200000  # 员工端令牌有效期（毫秒）
-    user-secret-key: your-user-secret-key
-    user-ttl: 7200000      # 用户端令牌有效期（毫秒）
-```
-
-### MinIO 配置
-
-```yaml
-minio:
-  endpoint: http://localhost:9000
-  access-key: your-access-key
-  secret-key: your-secret-key
-  bucket-name: your-bucket
-```
-
-### 线程池配置
-
-```yaml
-thread-pool:
-  business:
-    core-pool-size: 10
-    max-pool-size: 20
-    queue-capacity: 100
-    keep-alive-seconds: 60
-    rejection-policy: CALLER_RUNS
-```
-
-## 版本管理
-
-项目使用 `${revision}` 占位符进行版本管理，支持 CI/CD 场景：
+添加起步依赖：
 
 ```xml
-<properties>
-    <revision>release-1.0.0</revision>
-</properties>
+<dependencies>
+    <dependency>
+        <groupId>top.flowerstardream.base</groupId>
+        <artifactId>flower-spring-cloud-starter</artifactId>
+    </dependency>
+</dependencies>
 ```
 
-使用 flatten-maven-plugin 插件在构建时解析版本占位符，生成扁平化的 POM 文件。
+### 2. 开始使用
 
-## 项目状态
+参考【核心功能详解】章节，开始使用状态机、基础实体类等功能。
 
-**注意**: 该项目目前处于开发阶段，部分功能尚未完全实现或可能在未来版本中调整。
+## 构建安装
+
+```bash
+# 克隆项目
+git clone https://github.com/flower-star-dream/flower-spring-cloud.git
+
+# 进入项目目录
+cd flower-spring-cloud
+
+# 编译安装到本地 Maven 仓库
+mvn clean install
+```
+
+## 项目信息
+
+| 项目 | 地址 |
+|------|------|
+| 主页 | https://github.com/flower-star-dream/flower-spring-cloud |
+| 依赖管理 | https://github.com/flower-star-dream/flower-spring-cloud-dependencies |
+| 问题反馈 | https://github.com/flower-star-dream/flower-spring-cloud/issues |
+
+## 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+1. Fork 本仓库
+2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 创建 Pull Request
 
 ## 许可证
 
-[Apache License 2.0](LICENSE)
+本项目采用 [Apache License 2.0](LICENSE) 许可证。
+
+```
+Copyright 2026 FlowerStarDream(花海)
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+```
+
+## 致谢
+
+感谢所有为本项目做出贡献的开发者！

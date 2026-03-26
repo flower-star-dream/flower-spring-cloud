@@ -5,8 +5,8 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.12</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <version>3.5.12</version>
+        <relativePath/>
     </parent>
 <!--    <parent>-->
 <!--        <groupId>top.flowerstardream.base</groupId>-->
@@ -20,6 +20,30 @@
     <packaging>pom</packaging>
     <name>flower-spring-cloud</name>
     <description>微服务基础框架起步依赖</description>
+    <url>https://github.com/flower-star-dream/flower-spring-cloud</url>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:https://github.com/flower-star-dream/flower-spring-cloud.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:flower-star-dream/flower-spring-cloud.git</developerConnection>
+        <url>https://github.com/flower-star-dream/flower-spring-cloud</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <id>flower-star-dream</id>
+            <name>FlowerStarDream(花海)</name>
+            <url>https://github.com/flower-star-dream</url>
+        </developer>
+    </developers>
+
     <modules>
         <module>flower-core</module>
         <module>flower-spring-cloud-autoconfigure</module>
