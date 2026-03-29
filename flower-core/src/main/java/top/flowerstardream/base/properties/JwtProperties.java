@@ -28,7 +28,8 @@ public class JwtProperties {
         // 密钥
         private String secretKey;
         // 过期时间
-        private long ttl;
+        private long accessTokenTtl;
+        private long refreshTokenTtl;
         // 令牌名称
         private String tokenName = "Authorization";
         // 刷新时间

@@ -22,3 +22,5 @@ top.flowerstardream.base.autoconfigure.SharedMethodSecurityConfig
 top.flowerstardream.base.autoconfigure.BusinessUnderComponentAutoConfig
 # Bean生命周期追踪自动配置类
 top.flowerstardream.base.autoconfigure.BeanTracerAutoConfiguration
+# Redis工具类自动配置
+top.flowerstardream.base.autoconfigure.RedisUtilAutoConfig
