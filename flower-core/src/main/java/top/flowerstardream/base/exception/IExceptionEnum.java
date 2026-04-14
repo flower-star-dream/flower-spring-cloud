@@ -3,10 +3,6 @@ package top.flowerstardream.base.exception;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
  * @Author: 花海
  * @Date: 2025/11/11/22:08
@@ -23,9 +19,9 @@ public interface IExceptionEnum{
 
     /**
      * 创建一个自定义异常
-     * @param code
-     * @param message
-     * @return
+     * @param code 错误码
+     * @param message 错误信息
+     * @return 自定义异常
      */
     static IExceptionEnum of(Integer code, String message) {
         return new CustomExceptionEnum(code, message);
@@ -49,5 +45,9 @@ public interface IExceptionEnum{
     }
     default BizException toException(Throwable cause) {
         return new BizException(this, cause);
+    }
+    default BizException toException(String replenishmentMsg) {
+        String newMessage = this.getMessage() + ":" + replenishmentMsg;
+        return new BizException(IExceptionEnum.of(this.getCode(), newMessage));
     }
 }

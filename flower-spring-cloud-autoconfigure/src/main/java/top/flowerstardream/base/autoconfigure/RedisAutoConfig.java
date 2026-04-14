@@ -10,6 +10,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import top.flowerstardream.base.aspect.RedissonLockAspect;
 import top.flowerstardream.base.utils.RedisUtils;
 
 /**
@@ -21,7 +22,7 @@ import top.flowerstardream.base.utils.RedisUtils;
 @AutoConfigureAfter(RedisAutoConfiguration.class)
 @EnableConfigurationProperties(RedisProperties.class)
 @ConditionalOnClass({RedisConnectionFactory.class, StringRedisTemplate.class})
-public class RedisUtilAutoConfig {
+public class RedisAutoConfig {
 
     @Bean
     @ConditionalOnMissingBean

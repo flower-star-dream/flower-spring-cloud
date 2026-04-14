@@ -23,4 +23,8 @@ top.flowerstardream.base.autoconfigure.BusinessUnderComponentAutoConfig
 # Bean生命周期追踪自动配置类
 top.flowerstardream.base.autoconfigure.BeanTracerAutoConfiguration
 # Redis工具类自动配置
-top.flowerstardream.base.autoconfigure.RedisUtilAutoConfig
+top.flowerstardream.base.autoconfigure.RedisAutoConfig
+# Redisson 自动配置类
+top.flowerstardream.base.autoconfigure.RedissonAutoConfig
+# 全局自动配置类
+top.flowerstardream.base.autoconfigure.GlobalConfig

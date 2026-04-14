@@ -31,7 +31,8 @@ public enum ExceptionEnum implements IExceptionEnum{
     FAILED_FILE_UPLOAD(10017, "文件上传失败"),
     FAILED_FILE_DOWNLOAD(10018, "文件下载失败"),
     FAILED_FILE_DELETE(10019, "文件删除失败"),
-    JWT_EXPIRED(10020, "JWT过期");
+    JWT_EXPIRED(10020, "JWT过期"),
+    FAILED_TO_ACQUIRE_THE_LOCK(10021, "获取锁失败");
 
 
     private final Integer code;

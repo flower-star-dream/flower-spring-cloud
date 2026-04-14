@@ -5,7 +5,6 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
@@ -23,7 +22,7 @@ import org.springframework.util.StringUtils;
  */
 @AutoConfiguration
 @ConditionalOnClass({EnableMethodSecurity.class, SecurityFilterChain.class})  // 修改：明确指定需要的类
-@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+@EnableMethodSecurity(securedEnabled = true, jsr250Enabled = true)
 public class SharedMethodSecurityConfig {
 
     @Value("${security.role-hierarchy:ROLE_ADMIN > ROLE_USER}")
@@ -59,6 +58,7 @@ public class SharedMethodSecurityConfig {
     @ConditionalOnMissingBean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(AbstractHttpConfigurer::disable)
             // 禁用 CSRF（适用于无状态 API 服务）
             .csrf(AbstractHttpConfigurer::disable)
             // 禁用 HTTP Basic 认证（避免浏览器弹出登录窗口）
