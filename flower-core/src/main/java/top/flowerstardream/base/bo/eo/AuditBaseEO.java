@@ -30,4 +30,8 @@ public class AuditBaseEO extends BaseEO{
     private Long createPersonId;
     @TableField(value = "update_person_id", fill = FieldFill.INSERT_UPDATE)
     private Long updatePersonId;
+    @TableField(exist = false)
+    private String createPerson;
+    @TableField(exist = false)
+    private String updatePerson;
 }

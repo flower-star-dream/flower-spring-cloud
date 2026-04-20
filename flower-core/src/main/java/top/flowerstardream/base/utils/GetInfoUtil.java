@@ -11,21 +11,33 @@ import top.flowerstardream.base.context.RequestContext;
 public final class GetInfoUtil {
     public static String getTraceId() {
         RequestContext ctx = TtlContextHolder.get();
+        if (ctx == null) {
+            return null;
+        }
         return ctx.getTraceId();
     }
 
     public static Long getOperatorId() {
         RequestContext ctx = TtlContextHolder.get();
+        if (ctx == null) {
+            return null;
+        }
         return ctx.getOperatorId();
     }
 
     public static String getOperatorName() {
         RequestContext ctx = TtlContextHolder.get();
+        if (ctx == null) {
+            return null;
+        }
         return ctx.getOperatorName();
     }
 
     public static String getToken() {
         RequestContext ctx = TtlContextHolder.get();
+        if (ctx == null) {
+            return null;
+        }
         return ctx.getToken();
     }
 

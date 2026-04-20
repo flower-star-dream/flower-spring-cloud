@@ -1,7 +1,5 @@
 package top.flowerstardream.base.aspect;
 
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -9,7 +7,6 @@ import org.aspectj.lang.annotation.Aspect;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import top.flowerstardream.base.annotation.UserIdToName;
 import top.flowerstardream.base.resolver.UserNameResolver;
 import top.flowerstardream.base.resolver.UserNameResolverProvider;
 import top.flowerstardream.base.result.Result;
@@ -39,11 +36,13 @@ public class UserNameConvertAspect implements ApplicationContextAware {
         if (context == null) {
             throw new IllegalStateException("ApplicationContext 未初始化");
         }
+        log.debug("获取 UserNameResolverProvider Bean");
         return context.getBean(UserNameResolverProvider.class);
     }
     
     @Around("@within(org.springframework.web.bind.annotation.RestController)")
     public Object convert(ProceedingJoinPoint point) throws Throwable {
+        log.debug("进入 UserNameConvertAspect");
         Object result = point.proceed();
         if (result == null) {
             return null;
@@ -56,10 +55,145 @@ public class UserNameConvertAspect implements ApplicationContextAware {
 
         List<Object> targets = flattenToList(data);
         if (!targets.isEmpty()) {
-            batchConvert(targets);
+            List<Object> processedTargets = batchConvert(targets);
+            // 如果有对象被转换为Map，需要更新Result中的数据
+            if (processedTargets != targets) {
+                return updateResultData(result, data, processedTargets);
+            }
         }
 
         return result;
+    }
+
+    /**
+     * 更新Result中的数据
+     *
+     * @param originalResult 原始Result对象
+     * @param originalData   原始数据（从Result中提取的）
+     * @param newData        处理后的数据列表
+     * @return 更新后的Result
+     */
+    private Object updateResultData(Object originalResult, Object originalData, List<Object> newData) {
+        // 如果原始数据是列表，直接替换
+        if (originalData instanceof Collection) {
+            return replaceResultData(originalResult, newData);
+        }
+        // 如果原始数据是数组
+        if (originalData.getClass().isArray()) {
+            return replaceResultData(originalResult, newData.toArray());
+        }
+        // 如果原始数据是PageResult或Page类型
+        if (originalData.getClass().getName().contains("PageResult") ||
+            originalData.getClass().getName().contains("Page")) {
+            return replacePageResultData(originalResult, originalData, newData);
+        }
+        // 单对象，取列表第一个元素
+        if (!newData.isEmpty()) {
+            return replaceResultData(originalResult, newData.get(0));
+        }
+        return originalResult;
+    }
+
+    /**
+     * 替换Result中的data字段
+     */
+    @SuppressWarnings("unchecked")
+    private Object replaceResultData(Object result, Object newData) {
+        if (result instanceof Result) {
+            ((Result<Object>) result).setData(newData);
+        }
+        return result;
+    }
+
+    /**
+     * 替换分页对象中的records字段
+     */
+    private Object replacePageResultData(Object result, Object pageData, List<Object> newRecords) {
+        try {
+            Method setRecords = pageData.getClass().getMethod("setRecords", List.class);
+            setRecords.invoke(pageData, newRecords);
+        } catch (Exception e) {
+            log.debug("替换分页数据失败: {}", e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * 判断类是否需要处理（类名以RES、EO结尾）
+     */
+    private boolean isConvertibleClass(Class<?> clazz) {
+        if (clazz == null || clazz == Object.class) {
+            return false;
+        }
+        String className = clazz.getSimpleName();
+        return className.endsWith("RES") || className.endsWith("EO");
+    }
+
+    /**
+     * 获取对象中的目标字段值（createPersonId 或 updatePersonId）
+     */
+    private Object getIdFieldValue(Object target, String fieldName) {
+        try {
+            log.debug("获取对象{}的{}字段值", target, fieldName);
+            Field field = findField(target.getClass(), fieldName);
+            if (field != null) {
+                field.setAccessible(true);
+                return field.get(target);
+            }
+        } catch (Exception e) {
+            log.debug("获取字段{}失败: {}", fieldName, e.getMessage());
+        }
+        return null;
+    }
+
+    /**
+     * 设置对象中的目标字段值（createPerson 或 updatePerson）
+     * 如果字段在原实体类中不存在，则将对象转换为Map并添加新字段
+     *
+     * @return 如果转换为Map则返回Map对象，否则返回null表示保持原对象
+     */
+    private Object setNameFieldValue(Object target, String targetFieldName, String value) {
+        try {
+            log.debug("设置对象{}的{}字段值为{}", target, targetFieldName, value);
+            Field field = findField(target.getClass(), targetFieldName);
+            if (field != null) {
+                field.setAccessible(true);
+                field.set(target, value);
+                // 字段存在，无需转换
+                return null;
+            }
+            // 字段不存在，将对象转换为Map并添加新字段
+            return convertToMapWithExtraField(target, targetFieldName, value);
+        } catch (Exception e) {
+            log.debug("设置字段{}失败: {}", targetFieldName, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * 将对象转换为Map，复制所有原字段并添加额外字段
+     */
+    private Map<String, Object> convertToMapWithExtraField(Object target, String fieldName, String value) {
+        Map<String, Object> map = new HashMap<>();
+        Class<?> clazz = target.getClass();
+
+        // 复制原对象所有字段到Map
+        while (clazz != null && clazz != Object.class) {
+            for (Field f : clazz.getDeclaredFields()) {
+                try {
+                    f.setAccessible(true);
+                    map.put(f.getName(), f.get(target));
+                } catch (Exception e) {
+                    log.debug("复制字段{}失败: {}", f.getName(), e.getMessage());
+                }
+            }
+            clazz = clazz.getSuperclass();
+        }
+
+        // 添加新字段
+        map.put(fieldName, value);
+        log.debug("对象{}转换为Map并添加字段{}", target.getClass().getSimpleName(), fieldName);
+        return map;
     }
 
     /**
@@ -68,6 +202,7 @@ public class UserNameConvertAspect implements ApplicationContextAware {
      */
     private Object unwrapResult(Object result) {
         if (result instanceof Result) {
+            log.debug("获取响应结果中的数据对象");
             return ((Result<?>) result).getData();
         }
         return result;
@@ -75,10 +210,12 @@ public class UserNameConvertAspect implements ApplicationContextAware {
     
     /** 拍平为对象列表（支持单对象、List、Page等） */
     @SuppressWarnings("unchecked")
-    private static List<Object> flattenToList(Object data) {
+    private List<Object> flattenToList(Object data) {
+        log.debug("拍平为对象列表");
         if (data instanceof Collection) {
             return new ArrayList<>((Collection<?>) data);
         }
+
         if (data.getClass().isArray()) {
             int len = Array.getLength(data);
             List<Object> list = new ArrayList<>(len);
@@ -86,6 +223,16 @@ public class UserNameConvertAspect implements ApplicationContextAware {
                 list.add(Array.get(data, i));
             }
             return list;
+        }
+        // PageResult<T> 类型处理
+        if (data.getClass().getName().contains("PageResult")) {
+            try {
+                Method getRecords = data.getClass().getMethod("getRecords");
+                List<Object> records = (List<Object>) getRecords.invoke(data);
+                return records != null ? records : Collections.emptyList();
+            } catch (Exception e) {
+                log.debug("解析PageResult失败: {}", e.getMessage());
+            }
         }
         // 分页对象（PageHelper/IPage等）
         if (data.getClass().getName().contains("Page")) {
@@ -101,64 +248,9 @@ public class UserNameConvertAspect implements ApplicationContextAware {
         return Collections.singletonList(data);
     }
 
-    /** 获取类及其父类中所有带注解的字段 */
-    private static List<Field> getAnnotatedFields(Class<?> clazz) {
-        List<Field> fields = new ArrayList<>();
-        Set<String> fieldNames = new HashSet<>();
-
-        while (clazz != null && clazz != Object.class) {
-            for (Field field : clazz.getDeclaredFields()) {
-                if (field.isAnnotationPresent(UserIdToName.class)
-                    && !fieldNames.contains(field.getName())) {
-                    field.setAccessible(true);
-                    fields.add(field);
-                    fieldNames.add(field.getName());
-                }
-            }
-            clazz = clazz.getSuperclass();
-        }
-        return fields;
-    }
-
-    /** 反射获取字段值（支持多级，如 "user.createBy"） */
-    private static Object getFieldValue(Object target, String fieldName) {
-        if (target == null) {
-            return null;
-        }
-
-        String[] paths = fieldName.split("\\.");
-        Object current = target;
-
-        for (String path : paths) {
-            if (current == null) {
-                return null;
-            }
-            try {
-                Field field = findField(current.getClass(), path);
-                if (field == null) {
-                    return null;
-                }
-                field.setAccessible(true);
-                current = field.get(current);
-            } catch (Exception e) {
-                return null;
-            }
-        }
-        return current;
-    }
-
-    /** 反射设置字段值 */
-    private static void setFieldValue(Object target, Field field, Object value) {
-        try {
-            field.setAccessible(true);
-            field.set(target, value);
-        } catch (IllegalAccessException e) {
-            throw new RuntimeException("设置字段失败: " + field.getName(), e);
-        }
-    }
-
     /** 在类及其父类中查找字段 */
-    private static Field findField(Class<?> clazz, String fieldName) {
+    private Field findField(Class<?> clazz, String fieldName) {
+        log.debug("在类{}中查找字段{}", clazz, fieldName);
         while (clazz != null && clazz != Object.class) {
             try {
                 return clazz.getDeclaredField(fieldName);
@@ -171,59 +263,91 @@ public class UserNameConvertAspect implements ApplicationContextAware {
 
     // ========== 批量转换核心逻辑 ==========
 
-    private void batchConvert(List<Object> targets) {
-        // 收集所有ID和对应的字段映射
+    /**
+     * 批量转换，返回处理后的对象列表（可能包含Map替换原对象）
+     */
+    private List<Object> batchConvert(List<Object> targets) {
+        log.debug("批量转换开始");
+        // 收集所有ID
         Set<Long> allIds = new HashSet<>();
-        Map<Object, List<Pair<Field, Long>>> targetFieldMap = new IdentityHashMap<>();
+        // 存储需要转换的对象及其对应的ID字段信息
+        List<ConvertInfo> convertInfos = new ArrayList<>();
+        // 记录对象索引位置，用于后续替换
+        Map<Object, Integer> targetIndexMap = new HashMap<>();
 
-        for (Object target : targets) {
-            List<Field> fields = getAnnotatedFields(target.getClass());
-            if (fields.isEmpty()) {
+        for (int i = 0; i < targets.size(); i++) {
+            Object target = targets.get(i);
+            // 只处理类名以RES或EO结尾的对象
+            if (!isConvertibleClass(target.getClass())) {
                 continue;
             }
 
-            List<Pair<Field, Long>> fieldPairs = new ArrayList<>();
-            for (Field field : fields) {
-                UserIdToName anno = field.getAnnotation(UserIdToName.class);
-                Object idObj = getFieldValue(target, anno.field());
+            targetIndexMap.put(target, i);
 
-                if (idObj instanceof Number) {
-                    Long id = ((Number) idObj).longValue();
-                    allIds.add(id);
-                    fieldPairs.add(Pair.of(field, id));
-                }
+            // 处理 createPersonId
+            Object createIdObj = getIdFieldValue(target, "createPersonId");
+            if (createIdObj instanceof Number) {
+                Long id = ((Number) createIdObj).longValue();
+                allIds.add(id);
+                convertInfos.add(new ConvertInfo(target, "createPerson", id));
             }
 
-            if (!fieldPairs.isEmpty()) {
-                targetFieldMap.put(target, fieldPairs);
+            // 处理 updatePersonId
+            Object updateIdObj = getIdFieldValue(target, "updatePersonId");
+            if (updateIdObj instanceof Number) {
+                Long id = ((Number) updateIdObj).longValue();
+                allIds.add(id);
+                convertInfos.add(new ConvertInfo(target, "updatePerson", id));
             }
         }
 
         if (allIds.isEmpty()) {
-            return;
+            return targets;
         }
 
         // 统一解析
         UserNameResolver resolver = getProvider().getResolver();
         Map<Long, String> nameMap = resolver.resolve(allIds);
 
-        // 回填
-        targetFieldMap.forEach((target, pairs) -> {
-            for (Pair<Field, Long> pair : pairs) {
-                String name = nameMap.get(pair.right());
-                if (name != null) {
-                    setFieldValue(target, pair.left(), name);
+        // 回填用户名，处理字段不存在时转换为Map的情况
+        Map<Object, Object> replacementMap = new HashMap<>(); // 原对象 -> 转换后的对象(Map或原对象)
+
+        for (ConvertInfo info : convertInfos) {
+            String name = nameMap.get(info.userId());
+            if (name != null) {
+                Object target = info.target();
+                // 如果该对象已经被转换为Map，则从Map中获取
+                if (replacementMap.containsKey(target)) {
+                    target = replacementMap.get(target);
+                }
+
+                Object converted = setNameFieldValue(target, info.targetField(), name);
+
+                // 如果返回了Map（字段不存在），记录替换关系
+                if (converted != null) {
+                    replacementMap.put(info.target(), converted);
                 }
             }
-        });
+        }
+
+        // 如果需要替换，构建新的列表
+        if (!replacementMap.isEmpty()) {
+            List<Object> result = new ArrayList<>(targets);
+            for (Map.Entry<Object, Object> entry : replacementMap.entrySet()) {
+                Integer index = targetIndexMap.get(entry.getKey());
+                if (index != null) {
+                    result.set(index, entry.getValue());
+                }
+            }
+            return result;
+        }
+
+        return targets;
     }
 
     /**
-     * 简单Pair实现（避免引入Apache Commons）
+     * 转换信息记录
      */
-    private record Pair<L, R>(L left, R right) {
-        static <L, R> Pair<L, R> of(L left, R right) {
-            return new Pair<>(left, right);
-        }
+    private record ConvertInfo(Object target, String targetField, Long userId) {
     }
 }

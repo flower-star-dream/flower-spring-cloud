@@ -28,3 +28,7 @@ top.flowerstardream.base.autoconfigure.RedisAutoConfig
 top.flowerstardream.base.autoconfigure.RedissonAutoConfig
 # 全局自动配置类
 top.flowerstardream.base.autoconfigure.GlobalConfig
+# 批量操作异步执行切面自动配置
+top.flowerstardream.base.autoconfigure.AsyncBatchAspectAutoConfiguration
+# 自动批量操作异步切面自动配置
+top.flowerstardream.base.autoconfigure.AutoBatchAsyncAutoConfiguration

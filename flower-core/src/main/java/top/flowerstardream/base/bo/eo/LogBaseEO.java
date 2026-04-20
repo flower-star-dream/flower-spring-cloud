@@ -29,4 +29,6 @@ public class LogBaseEO extends BaseEO {
     private LocalDateTime updateTime;
     @TableField(value = "create_person_id", fill = FieldFill.INSERT)
     private Long createPersonId;
+    @TableField(exist = false)
+    private String createPerson;
 }

@@ -23,16 +23,6 @@ import top.flowerstardream.base.resolver.UserNameResolverProvider;
 @AutoConfigureAfter(RedisConnectionFactory.class)
 @ConditionalOnClass({MybatisPlusInterceptor.class, MyMetaObjectHandler.class})
 public class UserNameResolverConfiguration {
-    
-    /**
-     * 业务服务定义了 UserNameResolver 就用它
-     * 没定义就不创建 Provider，启动时会报错提示
-     */
-    @Bean
-    @ConditionalOnBean(UserNameResolver.class)
-    public UserNameResolverProvider userNameResolverProvider(UserNameResolver resolver) {
-        return () -> resolver;
-    }
 
     /**
      * 兜底：如果没定义 Resolver，给个空的，启动时抛异常提示
@@ -48,6 +38,7 @@ public class UserNameResolverConfiguration {
     }
     
     @Bean
+    @ConditionalOnBean(UserNameResolver.class)
     public UserNameConvertAspect userNameConvertAspect() {
         return new UserNameConvertAspect();
     }
